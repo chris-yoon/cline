@@ -1,5 +1,5 @@
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
-import { useState, memo } from "react"
+import { useState, useEffect, memo } from "react"
 import styled from "styled-components"
 import { EgovViewTab } from "../../shared/egovframe"
 import ProjectsView from "./tabs/ProjectsView"
@@ -17,6 +17,22 @@ const EgovView = memo(({ onDone, initialTab }: EgovViewProps) => {
 	const handleTabChange = (tab: EgovViewTab) => {
 		setActiveTab(tab)
 	}
+
+	useEffect(() => {
+		// 탭 전환 메시지 리스너 추가
+		const handleMessage = (event: MessageEvent) => {
+			const message = event.data
+			if (message.type === "switchEgovTab" && message.text) {
+				const tabName = message.text
+				if (tabName === "projects" || tabName === "code" || tabName === "config") {
+					setActiveTab(tabName as EgovViewTab)
+				}
+			}
+		}
+
+		window.addEventListener("message", handleMessage)
+		return () => window.removeEventListener("message", handleMessage)
+	}, [])
 
 	return (
 		<div

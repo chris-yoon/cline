@@ -25,10 +25,18 @@ eGovFrame Initializr는 한국의 전자정부 표준프레임워크인 eGovFram
 
 ## 🎯 사용 방법
 
-### 1. eGovFrame 탭 접근
+### 1. eGovFrame 기능 접근
+**방법 1: 첫 화면에서 바로 접근**
+1. Cline 사이드바를 열면 eGovFrame Initializr 환영 화면이 표시됩니다
+2. 원하는 기능 버튼을 클릭하여 바로 해당 탭으로 이동:
+   - **Project Generation**: 프로젝트 생성 탭
+   - **Code Generation**: 코드 생성 탭 (예정)
+   - **Configuration**: 설정 생성 탭 (예정)
+
+**방법 2: 툴바에서 접근**
 1. Cline 사이드바 열기
 2. 상단 툴바에서 eGovFrame 아이콘 클릭
-3. "Projects" 탭 선택
+3. 원하는 탭 선택
 
 ### 2. 프로젝트 생성 과정
 1. **템플릿 카테고리 선택** (All, Web, Template, Mobile, Boot, MSA, Batch)
@@ -51,6 +59,8 @@ eGovFrame Initializr는 한국의 전자정부 표준프레임워크인 eGovFram
 ## 🛠 기술 구조
 
 ### Frontend (React)
+- **WelcomeView.tsx**: eGovFrame 커스터마이징된 환영 화면 (첫 화면)
+- **EgovframeLogo.tsx**: eGovFrame 로고 SVG 컴포넌트
 - **ProjectsView.tsx**: 메인 프로젝트 생성 인터페이스
 - **projectUtils.ts**: 프로젝트 템플릿 정의 및 유틸리티
 - **egovUtils.ts**: eGovFrame 관련 헬퍼 함수
@@ -107,6 +117,8 @@ egovframe-pack/                    # 서브모듈 (재사용 리소스)
 
 ## 🎨 UI/UX 특징
 
+- **eGovFrame 브랜딩**: 커스터마이징된 로고와 한국 정부 프레임워크 테마
+- **직관적인 첫 화면**: 기능별 바로가기 버튼으로 즉시 원하는 작업 시작
 - **카테고리 기반 필터링**: 템플릿을 카테고리별로 쉽게 탐색
 - **실시간 유효성 검사**: 프로젝트 이름 및 설정 실시간 검증
 - **진행상황 표시**: 프로젝트 생성 과정을 실시간으로 모니터링

@@ -33,6 +33,7 @@ export interface WebviewMessage {
 		| "selectOutputPath"
 		| "generateProject"
 		| "generateProjectByCommand"
+		| "switchEgovTab"
 
 	text?: string
 	disabled?: boolean
