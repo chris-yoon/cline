@@ -452,6 +452,91 @@ export class Controller {
 				break
 			}
 
+			// eGovFrame project generation cases
+			case "selectOutputPath": {
+				const folders = await vscode.window.showOpenDialog({
+					canSelectFolders: true,
+					canSelectFiles: false,
+					canSelectMany: false,
+					openLabel: "Select Output Directory",
+					title: "Select Directory for eGovFrame Project",
+				})
+
+				if (folders && folders.length > 0) {
+					await this.postMessageToWebview({
+						type: "selectedOutputPath",
+						text: folders[0].fsPath,
+					})
+				}
+				break
+			}
+
+			case "generateProject": {
+				if (message.projectConfig && message.method) {
+					const { generateEgovProject, openProjectInVSCode } = await import("../../utils/egovProjectGenerator")
+
+					try {
+						// Send progress updates to webview
+						const sendProgress = (progressMessage: string) => {
+							this.postMessageToWebview({
+								type: "projectGenerationProgress",
+								text: progressMessage,
+							})
+						}
+
+						// Generate the project
+						const result = await generateEgovProject(message.projectConfig, this.context.extensionPath, sendProgress)
+
+						// Send result to webview
+						await this.postMessageToWebview({
+							type: "projectGenerationResult",
+							success: result.success,
+							text: result.message,
+							projectPath: result.projectPath,
+							error: result.error,
+						})
+
+						if (result.success) {
+							// Show success message with option to open project
+							const openProject = await vscode.window.showInformationMessage(
+								`✅ eGovFrame project "${message.projectConfig.projectName}" created successfully!`,
+								"Open Project",
+								"Open in New Window",
+							)
+
+							if (openProject === "Open Project") {
+								await openProjectInVSCode(result.projectPath!)
+							} else if (openProject === "Open in New Window") {
+								const projectUri = vscode.Uri.file(result.projectPath!)
+								await vscode.commands.executeCommand("vscode.openFolder", projectUri, {
+									forceNewWindow: true,
+								})
+							}
+						} else {
+							vscode.window.showErrorMessage(`❌ Failed to generate project: ${result.error}`)
+						}
+					} catch (error) {
+						await this.postMessageToWebview({
+							type: "projectGenerationResult",
+							success: false,
+							text: "Project generation failed",
+							error: error instanceof Error ? error.message : String(error),
+						})
+						vscode.window.showErrorMessage(`Failed to generate project: ${error}`)
+					}
+				}
+				break
+			}
+
+			case "generateProjectByCommand": {
+				// Show command palette for eGovFrame project generation
+				vscode.window.showInformationMessage(
+					"Command-based project generation will be implemented in future version.",
+					"OK",
+				)
+				break
+			}
+
 			// Add more switch case statements here as more webview message commands
 			// are created within the webview context (i.e. inside media/main.js)
 		}

@@ -241,30 +241,6 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 			}
 
-			const handleGenerateProject = async (projectConfig: any, method: string) => {
-				try {
-					// TODO: Implement actual project generation logic
-					// For now, just show a message
-					vscode.window.showInformationMessage(
-						`Generating eGovFrame project: ${projectConfig.projectName} using ${method} method`,
-					)
-
-					// In the future, this would:
-					// 1. Extract the template zip file
-					// 2. Replace placeholders in POM file
-					// 3. Create project structure
-					// 4. Open the generated project
-				} catch (error) {
-					vscode.window.showErrorMessage(`Failed to generate project: ${error}`)
-				}
-			}
-
-			const handleGenerateProjectByCommand = async () => {
-				// Open VS Code command palette with eGovFrame commands
-				await vscode.commands.executeCommand("workbench.action.showCommands")
-				// TODO: Implement command-based project generation
-				vscode.window.showInformationMessage("Command-based project generation coming soon!")
-			}
 			const isSidebar = !webview
 			if (isSidebar) {
 				openEgov(WebviewProvider.getSidebarInstance())

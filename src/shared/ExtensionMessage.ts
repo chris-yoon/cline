@@ -42,6 +42,8 @@ export interface ExtensionMessage {
 		| "fileSearchResults"
 		| "grpc_response" // New type for gRPC responses
 		| "selectedOutputPath"
+		| "projectGenerationResult"
+		| "projectGenerationProgress"
 	text?: string
 	action?:
 		| "chatButtonClicked"
@@ -106,6 +108,8 @@ export interface ExtensionMessage {
 		is_streaming?: boolean // Whether this is part of a streaming response
 		sequence_number?: number // For ordering chunks in streaming responses
 	}
+	// For eGovFrame project generation
+	projectPath?: string
 }
 
 export type Invoke = "sendMessage" | "primaryButtonClick" | "secondaryButtonClick"

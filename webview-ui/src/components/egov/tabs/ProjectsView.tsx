@@ -20,6 +20,12 @@ import {
 	getDefaultGroupId,
 	generateSampleProjectName,
 } from "../../../utils/projectUtils"
+import {
+	createProjectGenerationMessage,
+	createSelectOutputPathMessage,
+	createGenerateProjectByCommandMessage,
+	validateFileSystemPath,
+} from "../../../utils/egovUtils"
 
 export const ProjectsView = () => {
 	const [selectedCategory, setSelectedCategory] = useState<string>("All")
@@ -30,13 +36,43 @@ export const ProjectsView = () => {
 	const [generationMethod, setGenerationMethod] = useState<"form" | "command">("form")
 	const [validationErrors, setValidationErrors] = useState<string[]>([])
 	const [isGenerating, setIsGenerating] = useState<boolean>(false)
+	const [generationStatus, setGenerationStatus] = useState<string>("")
 
 	const filteredTemplates = getTemplatesByCategory(selectedCategory)
 
 	useEffect(() => {
-		// Initialize with sample project name and default output path
+		// Initialize with sample project name
 		setProjectName(generateSampleProjectName())
-		setOutputPath("/Users/username/Projects") // Default path, would be replaced with workspace root
+
+		// Listen for messages from extension
+		const handleMessage = (event: MessageEvent) => {
+			const message = event.data
+			switch (message.type) {
+				case "selectedOutputPath":
+					if (message.text) {
+						setOutputPath(message.text)
+					}
+					break
+				case "projectGenerationResult":
+					setIsGenerating(false)
+					if (message.success) {
+						setGenerationStatus(`✅ Project generated successfully at: ${message.projectPath}`)
+						// Reset form
+						setSelectedTemplate(null)
+						setProjectName(generateSampleProjectName())
+						setValidationErrors([])
+					} else {
+						setGenerationStatus(`❌ Generation failed: ${message.error}`)
+					}
+					break
+				case "projectGenerationProgress":
+					setGenerationStatus(message.text || "")
+					break
+			}
+		}
+
+		window.addEventListener("message", handleMessage)
+		return () => window.removeEventListener("message", handleMessage)
 	}, [])
 
 	const handleCategoryChange = (event: any) => {
@@ -48,16 +84,11 @@ export const ProjectsView = () => {
 	const handleTemplateSelect = (template: ProjectTemplate) => {
 		setSelectedTemplate(template)
 		setValidationErrors([]) // Clear previous errors
+		setGenerationStatus("") // Clear previous status
 	}
 
 	const handleSelectOutputPath = () => {
-		// For now, just show a file dialog simulation
-		const defaultPath = "/Users/username/Projects" // This would be replaced with actual VS Code API
-		setOutputPath(defaultPath)
-		// TODO: Integrate with VS Code file dialog
-		// vscode.postMessage({
-		// 	type: "selectOutputPath",
-		// });
+		vscode.postMessage(createSelectOutputPathMessage())
 	}
 
 	const validateForm = (): boolean => {
@@ -74,6 +105,12 @@ export const ProjectsView = () => {
 		}
 
 		const errors = validateProjectConfig(config)
+
+		// Additional file system validation
+		if (projectName && !validateFileSystemPath(projectName)) {
+			errors.push("Project name contains invalid characters for file system")
+		}
+
 		setValidationErrors(errors)
 		return errors.length === 0
 	}
@@ -84,6 +121,8 @@ export const ProjectsView = () => {
 		}
 
 		setIsGenerating(true)
+		setGenerationStatus("🚀 Starting project generation...")
+
 		try {
 			const config: ProjectConfig = {
 				projectName,
@@ -92,33 +131,18 @@ export const ProjectsView = () => {
 				template: selectedTemplate!,
 			}
 
-			// Simulate project generation for now
-			console.log("Generating project with config:", config)
-
-			// TODO: Integrate with VS Code API for actual project generation
-			// vscode.postMessage({
-			// 	type: "generateProject",
-			// 	method: generationMethod,
-			// 	projectConfig: config,
-			// });
-
-			// Simulate async operation
-			await new Promise((resolve) => setTimeout(resolve, 2000))
-			console.log("Project generation completed (simulated)")
+			// Send message to extension for actual project generation
+			const message = createProjectGenerationMessage(config, generationMethod)
+			vscode.postMessage(message)
 		} catch (error) {
 			console.error("Error generating project:", error)
-		} finally {
 			setIsGenerating(false)
+			setGenerationStatus(`❌ Error: ${error}`)
 		}
 	}
 
 	const handleGenerateByCommand = () => {
-		// For now, just show a message
-		console.log("Command-based generation requested")
-		// TODO: Integrate with VS Code command palette
-		// vscode.postMessage({
-		// 	type: "generateProjectByCommand",
-		// });
+		vscode.postMessage(createGenerateProjectByCommandMessage())
 	}
 
 	const handleInsertSample = () => {
@@ -126,6 +150,19 @@ export const ProjectsView = () => {
 		setGroupID(getDefaultGroupId())
 		if (PROJECT_TEMPLATES.length > 0) {
 			setSelectedTemplate(PROJECT_TEMPLATES[0])
+		}
+		setGenerationStatus("")
+	}
+
+	const handleProjectNameChange = (event: any) => {
+		const value = event.target.value
+		setProjectName(value)
+
+		// Real-time validation for project name
+		if (value && !validateFileSystemPath(value)) {
+			setValidationErrors(["Project name contains invalid characters"])
+		} else {
+			setValidationErrors([])
 		}
 	}
 
@@ -150,6 +187,37 @@ export const ProjectsView = () => {
 					</VSCodeLink>
 				</p>
 			</div>
+
+			{/* Generation Status */}
+			{generationStatus && (
+				<div style={{ marginBottom: "20px" }}>
+					<div
+						style={{
+							backgroundColor: generationStatus.startsWith("❌")
+								? "var(--vscode-inputValidation-errorBackground)"
+								: generationStatus.startsWith("✅")
+									? "var(--vscode-inputValidation-infoBackground)"
+									: "var(--vscode-inputValidation-warningBackground)",
+							border: `1px solid ${
+								generationStatus.startsWith("❌")
+									? "var(--vscode-inputValidation-errorBorder)"
+									: generationStatus.startsWith("✅")
+										? "var(--vscode-inputValidation-infoBorder)"
+										: "var(--vscode-inputValidation-warningBorder)"
+							}`,
+							color: generationStatus.startsWith("❌")
+								? "var(--vscode-inputValidation-errorForeground)"
+								: generationStatus.startsWith("✅")
+									? "var(--vscode-inputValidation-infoForeground)"
+									: "var(--vscode-inputValidation-warningForeground)",
+							padding: "10px",
+							borderRadius: "3px",
+							fontSize: "12px",
+						}}>
+						{generationStatus}
+					</div>
+				</div>
+			)}
 
 			{/* Generation Method Selection */}
 			<div style={{ marginBottom: "20px" }}>
@@ -240,10 +308,13 @@ export const ProjectsView = () => {
 								<label style={{ display: "block", marginBottom: "5px", fontSize: "12px" }}>Project Name *</label>
 								<VSCodeTextField
 									value={projectName}
-									placeholder="Enter project name"
+									placeholder="Enter project name (letters, numbers, hyphens, underscores)"
 									style={{ width: "100%" }}
-									onInput={(e: any) => setProjectName(e.target.value)}
+									onInput={handleProjectNameChange}
 								/>
+								<div style={{ fontSize: "10px", color: "var(--vscode-descriptionForeground)", marginTop: "2px" }}>
+									Will be used as the project folder name
+								</div>
 							</div>
 
 							{/* Group ID (only if template has pomFile) */}
@@ -282,6 +353,9 @@ export const ProjectsView = () => {
 										Browse
 									</VSCodeButton>
 								</div>
+								<div style={{ fontSize: "10px", color: "var(--vscode-descriptionForeground)", marginTop: "2px" }}>
+									Project will be created in: {outputPath ? `${outputPath}/${projectName}` : "Not selected"}
+								</div>
 							</div>
 
 							{/* Template Info */}
@@ -299,6 +373,9 @@ export const ProjectsView = () => {
 								<div style={{ fontSize: "11px", color: "var(--vscode-descriptionForeground)" }}>
 									{selectedTemplate.description}
 								</div>
+								<div style={{ fontSize: "10px", color: "var(--vscode-descriptionForeground)", marginTop: "5px" }}>
+									Source: egovframe-pack/examples/{selectedTemplate.fileName}
+								</div>
 								{selectedTemplate.pomFile && (
 									<div
 										style={{
@@ -306,7 +383,7 @@ export const ProjectsView = () => {
 											color: "var(--vscode-descriptionForeground)",
 											marginTop: "5px",
 										}}>
-										Includes: Maven POM configuration
+										Includes: Maven POM configuration ({selectedTemplate.pomFile})
 									</div>
 								)}
 							</div>
@@ -340,7 +417,7 @@ export const ProjectsView = () => {
 					<div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
 						<VSCodeButton
 							appearance="primary"
-							disabled={isGenerating}
+							disabled={isGenerating || !selectedTemplate || !projectName || !outputPath}
 							onClick={handleGenerateProject}
 							style={{ flex: 1 }}>
 							{isGenerating ? (
@@ -401,6 +478,9 @@ export const ProjectsView = () => {
 							<strong>Batch:</strong> Batch processing projects
 						</li>
 					</ul>
+					<div style={{ marginTop: "10px", fontSize: "10px", opacity: 0.8 }}>
+						All templates are sourced from egovframe-pack/examples/ directory
+					</div>
 				</div>
 			</div>
 		</div>
