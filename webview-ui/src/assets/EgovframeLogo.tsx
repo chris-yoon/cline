@@ -1,41 +1,59 @@
 import React from "react"
 
-interface EgovframeLogoProps {
+interface EgovCodeLogoProps {
 	className?: string
 	style?: React.CSSProperties
 }
 
-const EgovframeLogo: React.FC<EgovframeLogoProps> = ({ className, style }) => (
-	<svg className={className} style={style} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-		{/* 외부 원형 프레임 - 글자와 여백을 두어 배치 */}
-		<circle cx="50" cy="50" r="45" stroke="#BDC3C7" strokeWidth="2.5" fill="none" opacity="0.9" />
-		{/* eGov 텍스트 - 상단 중앙 배치, 원형 테두리와 여백 유지 */}
+const EgovCodeLogo: React.FC<EgovCodeLogoProps> = ({ className, style }) => (
+	<svg className={className} style={style} viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+		{/* 왼쪽 중괄호 */}
 		<text
-			x="50"
-			y="38"
+			x="19"
+			y="117"
 			textAnchor="middle"
-			alignmentBaseline="middle"
-			fontWeight="700"
-			fontSize="26"
-			fill="#BDC3C7"
-			fontFamily="Arial, Roboto, sans-serif"
-			opacity="1">
+			fontWeight="normal"
+			fontSize="117"
+			fill="white"
+			fontFamily="Menlo, Consolas, 'Liberation Mono', monospace"
+			dominantBaseline="middle">
+			{"{"}
+		</text>
+		{/* 오른쪽 중괄호 */}
+		<text
+			x="197"
+			y="117"
+			textAnchor="middle"
+			fontWeight="normal"
+			fontSize="117"
+			fill="white"
+			fontFamily="Menlo, Consolas, 'Liberation Mono', monospace"
+			dominantBaseline="middle">
+			{"}"}
+		</text>
+		{/* eGov 텍스트 */}
+		<text
+			x="110"
+			y="90"
+			textAnchor="middle"
+			fontWeight="bold"
+			fontSize="44"
+			fill="white"
+			fontFamily="Arial, Helvetica, sans-serif">
 			eGov
 		</text>
-		{/* Frame 텍스트 - 하단 중앙 배치, 원형 테두리와 여백 유지 */}
+		{/* Code 텍스트 */}
 		<text
-			x="50"
-			y="72"
+			x="110"
+			y="155"
 			textAnchor="middle"
-			alignmentBaseline="middle"
-			fontWeight="700"
-			fontSize="26"
-			fill="#BDC3C7"
-			fontFamily="Arial, Roboto, sans-serif"
-			opacity="1">
-			Frame
+			fontWeight="bold"
+			fontSize="44"
+			fill="white"
+			fontFamily="Arial, Helvetica, sans-serif">
+			Code
 		</text>
 	</svg>
 )
 
-export default EgovframeLogo
+export default EgovCodeLogo

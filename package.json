@@ -50,19 +50,19 @@
 			"activitybar": [
 				{
 					"id": "claude-dev-ActivityBar",
-					"title": "EGOV-Cline (⌘+')",
+					"title": "eGov-Code (⌘+')",
 					"icon": "assets/icons/icon.svg",
 					"when": "isMac"
 				},
 				{
 					"id": "claude-dev-ActivityBar",
-					"title": "EGOV-Cline (Ctrl+')",
+					"title": "eGov-Code (Ctrl+')",
 					"icon": "assets/icons/icon.svg",
 					"when": "isWindows"
 				},
 				{
 					"id": "claude-dev-ActivityBar",
-					"title": "EGOV-Cline (Ctrl+')",
+					"title": "eGov-Code (Ctrl+')",
 					"icon": "assets/icons/icon.svg",
 					"when": "isLinux || !isMac && !isWindows"
 				}
