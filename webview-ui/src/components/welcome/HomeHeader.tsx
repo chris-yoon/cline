@@ -16,7 +16,7 @@ const HomeHeader = () => {
 	return (
 		<div className="flex flex-col items-center mb-5">
 			<div className="my-5 flex items-center gap-3">
-				<EgovframeLogo className="size-12 text-[var(--vscode-foreground)] opacity-70" />
+				<EgovframeLogo className="size-16 text-[var(--vscode-foreground)] opacity-100" />
 			</div>
 			<div className="text-center flex items-center justify-center mb-3">
 				<h2 className="m-0 text-[var(--vscode-font-size)]">{"Ready to build with eGovFrame?"}</h2>
