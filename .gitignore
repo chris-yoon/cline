@@ -5,7 +5,7 @@ node_modules
 tmp
 .vscode-test/
 *.vsix
-
+egovframe-pack
 .DS_Store
 
 pnpm-lock.yaml

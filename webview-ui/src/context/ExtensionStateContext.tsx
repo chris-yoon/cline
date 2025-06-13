@@ -38,6 +38,7 @@ interface ExtensionStateContextType extends ExtensionState {
 	showSettings: boolean
 	showHistory: boolean
 	showAccount: boolean
+	showEgov: boolean
 	showAnnouncement: boolean
 
 	// Setters
@@ -70,12 +71,14 @@ interface ExtensionStateContextType extends ExtensionState {
 	navigateToSettings: () => void
 	navigateToHistory: () => void
 	navigateToAccount: () => void
+	navigateToEgov: () => void
 	navigateToChat: () => void
 
 	// Hide functions
 	hideSettings: () => void
 	hideHistory: () => void
 	hideAccount: () => void
+	hideEgov: () => void
 	hideAnnouncement: () => void
 	closeMcpView: () => void
 }
@@ -91,6 +94,7 @@ export const ExtensionStateContextProvider: React.FC<{
 	const [showSettings, setShowSettings] = useState(false)
 	const [showHistory, setShowHistory] = useState(false)
 	const [showAccount, setShowAccount] = useState(false)
+	const [showEgov, setShowEgov] = useState(false)
 	const [showAnnouncement, setShowAnnouncement] = useState(false)
 
 	// Helper for MCP view
@@ -103,6 +107,7 @@ export const ExtensionStateContextProvider: React.FC<{
 	const hideSettings = useCallback(() => setShowSettings(false), [setShowSettings])
 	const hideHistory = useCallback(() => setShowHistory(false), [setShowHistory])
 	const hideAccount = useCallback(() => setShowAccount(false), [setShowAccount])
+	const hideEgov = useCallback(() => setShowEgov(false), [setShowEgov])
 	const hideAnnouncement = useCallback(() => setShowAnnouncement(false), [setShowAnnouncement])
 
 	// Navigation functions
@@ -111,41 +116,54 @@ export const ExtensionStateContextProvider: React.FC<{
 			setShowSettings(false)
 			setShowHistory(false)
 			setShowAccount(false)
+			setShowEgov(false)
 			if (tab) {
 				setMcpTab(tab)
 			}
 			setShowMcp(true)
 		},
-		[setShowMcp, setMcpTab, setShowSettings, setShowHistory, setShowAccount],
+		[setShowMcp, setMcpTab, setShowSettings, setShowHistory, setShowAccount, setShowEgov],
 	)
 
 	const navigateToSettings = useCallback(() => {
 		setShowHistory(false)
 		closeMcpView()
 		setShowAccount(false)
+		setShowEgov(false)
 		setShowSettings(true)
-	}, [setShowSettings, setShowHistory, closeMcpView, setShowAccount])
+	}, [setShowSettings, setShowHistory, closeMcpView, setShowAccount, setShowEgov])
 
 	const navigateToHistory = useCallback(() => {
 		setShowSettings(false)
 		closeMcpView()
 		setShowAccount(false)
+		setShowEgov(false)
 		setShowHistory(true)
-	}, [setShowSettings, closeMcpView, setShowAccount, setShowHistory])
+	}, [setShowSettings, closeMcpView, setShowAccount, setShowHistory, setShowEgov])
 
 	const navigateToAccount = useCallback(() => {
 		setShowSettings(false)
 		closeMcpView()
 		setShowHistory(false)
+		setShowEgov(false)
 		setShowAccount(true)
-	}, [setShowSettings, closeMcpView, setShowHistory, setShowAccount])
+	}, [setShowSettings, closeMcpView, setShowHistory, setShowAccount, setShowEgov])
+
+	const navigateToEgov = useCallback(() => {
+		setShowSettings(false)
+		closeMcpView()
+		setShowHistory(false)
+		setShowAccount(false)
+		setShowEgov(true)
+	}, [setShowSettings, closeMcpView, setShowHistory, setShowAccount, setShowEgov])
 
 	const navigateToChat = useCallback(() => {
 		setShowSettings(false)
 		closeMcpView()
 		setShowHistory(false)
 		setShowAccount(false)
-	}, [setShowSettings, closeMcpView, setShowHistory, setShowAccount])
+		setShowEgov(false)
+	}, [setShowSettings, closeMcpView, setShowHistory, setShowAccount, setShowEgov])
 
 	const [state, setState] = useState<ExtensionState>({
 		version: "",
@@ -200,6 +218,9 @@ export const ExtensionStateContextProvider: React.FC<{
 						break
 					case "accountButtonClicked":
 						navigateToAccount()
+						break
+					case "egovButtonClicked":
+						navigateToEgov()
 						break
 					case "chatButtonClicked":
 						navigateToChat()
@@ -442,6 +463,7 @@ export const ExtensionStateContextProvider: React.FC<{
 		showSettings,
 		showHistory,
 		showAccount,
+		showEgov,
 		showAnnouncement,
 		globalClineRulesToggles: state.globalClineRulesToggles || {},
 		localClineRulesToggles: state.localClineRulesToggles || {},
@@ -456,12 +478,14 @@ export const ExtensionStateContextProvider: React.FC<{
 		navigateToSettings,
 		navigateToHistory,
 		navigateToAccount,
+		navigateToEgov,
 		navigateToChat,
 
 		// Hide functions
 		hideSettings,
 		hideHistory,
 		hideAccount,
+		hideEgov,
 		hideAnnouncement,
 		setApiConfiguration: (value) =>
 			setState((prevState) => ({

@@ -50,6 +50,7 @@ export interface ExtensionMessage {
 		| "didBecomeVisible"
 		| "accountLogoutClicked"
 		| "accountButtonClicked"
+		| "egovButtonClicked"
 		| "focusChatInput"
 	invoke?: Invoke
 	state?: ExtensionState

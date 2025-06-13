@@ -4,6 +4,7 @@ import HistoryView from "./components/history/HistoryView"
 import SettingsView from "./components/settings/SettingsView"
 import WelcomeView from "./components/welcome/WelcomeView"
 import AccountView from "./components/account/AccountView"
+import EgovView from "./components/egov/EgovView"
 import { useExtensionState } from "./context/ExtensionStateContext"
 import { UiServiceClient } from "./services/grpc-client"
 import McpView from "./components/mcp/configuration/McpConfigurationView"
@@ -20,6 +21,7 @@ const AppContent = () => {
 		showSettings,
 		showHistory,
 		showAccount,
+		showEgov,
 		showAnnouncement,
 		setShowAnnouncement,
 		setShouldShowAnnouncement,
@@ -28,6 +30,7 @@ const AppContent = () => {
 		hideSettings,
 		hideHistory,
 		hideAccount,
+		hideEgov,
 		hideAnnouncement,
 	} = useExtensionState()
 
@@ -60,10 +63,11 @@ const AppContent = () => {
 					{showHistory && <HistoryView onDone={hideHistory} />}
 					{showMcp && <McpView initialTab={mcpTab} onDone={closeMcpView} />}
 					{showAccount && <AccountView onDone={hideAccount} />}
+					{showEgov && <EgovView onDone={hideEgov} />}
 					{/* Do not conditionally load ChatView, it's expensive and there's state we don't want to lose (user input, disableInput, askResponse promise, etc.) */}
 					<ChatView
 						showHistoryView={navigateToHistory}
-						isHidden={showSettings || showHistory || showMcp || showAccount}
+						isHidden={showSettings || showHistory || showMcp || showAccount || showEgov}
 						showAnnouncement={showAnnouncement}
 						hideAnnouncement={hideAnnouncement}
 					/>

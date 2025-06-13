@@ -50,19 +50,19 @@
 			"activitybar": [
 				{
 					"id": "claude-dev-ActivityBar",
-					"title": "Cline (⌘+')",
+					"title": "EGOV-Cline (⌘+')",
 					"icon": "assets/icons/icon.svg",
 					"when": "isMac"
 				},
 				{
 					"id": "claude-dev-ActivityBar",
-					"title": "Cline (Ctrl+')",
+					"title": "EGOV-Cline (Ctrl+')",
 					"icon": "assets/icons/icon.svg",
 					"when": "isWindows"
 				},
 				{
 					"id": "claude-dev-ActivityBar",
-					"title": "Cline (Ctrl+')",
+					"title": "EGOV-Cline (Ctrl+')",
 					"icon": "assets/icons/icon.svg",
 					"when": "isLinux || !isMac && !isWindows"
 				}
@@ -107,6 +107,11 @@
 				"command": "cline.settingsButtonClicked",
 				"title": "Settings",
 				"icon": "$(settings-gear)"
+			},
+			{
+				"command": "cline.egovButtonClicked",
+				"title": "eGovFrame",
+				"icon": "assets/icons/egovframe.svg"
 			},
 			{
 				"command": "cline.openInNewTab",
@@ -204,6 +209,11 @@
 					"command": "cline.settingsButtonClicked",
 					"group": "navigation@6",
 					"when": "view == claude-dev.SidebarProvider"
+				},
+				{
+					"command": "cline.egovButtonClicked",
+					"group": "navigation@7",
+					"when": "view == claude-dev.SidebarProvider"
 				}
 			],
 			"editor/title": [
@@ -235,6 +245,11 @@
 				{
 					"command": "cline.settingsButtonClicked",
 					"group": "navigation@6",
+					"when": "activeWebviewPanelId == claude-dev.TabPanelProvider"
+				},
+				{
+					"command": "cline.egovButtonClicked",
+					"group": "navigation@7",
 					"when": "activeWebviewPanelId == claude-dev.TabPanelProvider"
 				}
 			],
