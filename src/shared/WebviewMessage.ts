@@ -30,6 +30,9 @@ export interface WebviewMessage {
 		| "grpc_request"
 		| "grpc_request_cancel"
 		| "toggleWorkflow"
+		| "selectOutputPath"
+		| "generateProject"
+		| "generateProjectByCommand"
 
 	text?: string
 	disabled?: boolean
@@ -77,6 +80,19 @@ export interface WebviewMessage {
 	workflowPath?: string
 	enabled?: boolean
 	filename?: string
+
+	// For eGovFrame project generation
+	projectConfig?: {
+		projectName: string
+		groupID: string
+		outputPath: string
+		template: {
+			displayName: string
+			fileName: string
+			pomFile: string
+		}
+	}
+	method?: string
 
 	offset?: number
 	shellIntegrationTimeout?: number

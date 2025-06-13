@@ -41,6 +41,7 @@ export interface ExtensionMessage {
 		| "browserConnectionResult"
 		| "fileSearchResults"
 		| "grpc_response" // New type for gRPC responses
+		| "selectedOutputPath"
 	text?: string
 	action?:
 		| "chatButtonClicked"
@@ -52,6 +53,9 @@ export interface ExtensionMessage {
 		| "accountButtonClicked"
 		| "egovButtonClicked"
 		| "focusChatInput"
+		| "selectOutputPath"
+		| "generateProject"
+		| "generateProjectByCommand"
 	invoke?: Invoke
 	state?: ExtensionState
 	images?: string[]
