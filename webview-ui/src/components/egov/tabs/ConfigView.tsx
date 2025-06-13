@@ -33,8 +33,8 @@ const ConfigView = () => {
 					marginBottom: "16px",
 					marginTop: "5px",
 				}}>
-				Generate configuration files for eGovFrame applications. Create Spring configuration, database settings,
-				security configurations, and more. Learn more at{" "}
+				Generate configuration files for eGovFrame applications. Create Spring configuration, database settings, security
+				configurations, and more. Learn more at{" "}
 				<VSCodeLink href="https://github.com/chris-yoon/egovframe-pack" style={{ display: "inline" }}>
 					GitHub
 				</VSCodeLink>
@@ -59,9 +59,7 @@ const ConfigView = () => {
 
 			{/* Configuration Type Selection */}
 			<div style={{ marginBottom: "20px" }}>
-				<h4 style={{ color: "var(--vscode-foreground)", marginBottom: "10px", marginTop: 0 }}>
-					Configuration Type
-				</h4>
+				<h4 style={{ color: "var(--vscode-foreground)", marginBottom: "10px", marginTop: 0 }}>Configuration Type</h4>
 				<VSCodeDropdown
 					style={{ width: "100%", marginBottom: "10px" }}
 					value={selectedConfigType}
@@ -77,10 +75,7 @@ const ConfigView = () => {
 
 			{/* Generate Button */}
 			<div style={{ marginBottom: "20px" }}>
-				<VSCodeButton
-					appearance="primary"
-					style={{ width: "100%", marginBottom: "10px" }}
-					onClick={handleGenerateConfig}>
+				<VSCodeButton appearance="primary" style={{ width: "100%", marginBottom: "10px" }} onClick={handleGenerateConfig}>
 					<span className="codicon codicon-file-code" style={{ marginRight: "6px" }}></span>
 					Generate Configuration Files
 				</VSCodeButton>
@@ -125,4 +120,4 @@ const ConfigView = () => {
 	)
 }
 
-export default ConfigView 
+export default ConfigView

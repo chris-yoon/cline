@@ -41,8 +41,8 @@ COMMENT ON COLUMN SAMPLE_TABLE.EMAIL IS 'Email address';`
 					marginBottom: "16px",
 					marginTop: "5px",
 				}}>
-				Generate CRUD operations and database-related code from DDL (Data Definition Language) statements.
-				Supports Oracle, MySQL, PostgreSQL and more. Learn more at{" "}
+				Generate CRUD operations and database-related code from DDL (Data Definition Language) statements. Supports
+				Oracle, MySQL, PostgreSQL and more. Learn more at{" "}
 				<VSCodeLink href="https://github.com/chris-yoon/egovframe-pack" style={{ display: "inline" }}>
 					GitHub
 				</VSCodeLink>
@@ -63,9 +63,7 @@ COMMENT ON COLUMN SAMPLE_TABLE.EMAIL IS 'Email address';`
 
 			{/* DDL Input Section */}
 			<div style={{ marginBottom: "20px" }}>
-				<h4 style={{ color: "var(--vscode-foreground)", marginBottom: "10px", marginTop: 0 }}>
-					DDL Input
-				</h4>
+				<h4 style={{ color: "var(--vscode-foreground)", marginBottom: "10px", marginTop: 0 }}>DDL Input</h4>
 				<VSCodeTextArea
 					style={{ width: "100%", height: "200px", fontFamily: "monospace" }}
 					placeholder="Enter your DDL statements here..."
@@ -76,9 +74,7 @@ COMMENT ON COLUMN SAMPLE_TABLE.EMAIL IS 'Email address';`
 
 			{/* Generation Options */}
 			<div style={{ marginBottom: "20px" }}>
-				<h4 style={{ color: "var(--vscode-foreground)", marginBottom: "10px" }}>
-					Code Generation
-				</h4>
+				<h4 style={{ color: "var(--vscode-foreground)", marginBottom: "10px" }}>Code Generation</h4>
 				<VSCodeButton
 					appearance="primary"
 					style={{ width: "100%", marginBottom: "10px" }}
@@ -100,9 +96,7 @@ COMMENT ON COLUMN SAMPLE_TABLE.EMAIL IS 'Email address';`
 					borderRadius: "4px",
 					marginTop: "20px",
 				}}>
-				<h4 style={{ color: "var(--vscode-foreground)", marginBottom: "10px", marginTop: 0 }}>
-					Generated Code Includes
-				</h4>
+				<h4 style={{ color: "var(--vscode-foreground)", marginBottom: "10px", marginTop: 0 }}>Generated Code Includes</h4>
 				<ul style={{ fontSize: "12px", color: "var(--vscode-foreground)", margin: "0", paddingLeft: "20px" }}>
 					<li>DAO (Data Access Object) files</li>
 					<li>Service layer implementations</li>
@@ -116,4 +110,4 @@ COMMENT ON COLUMN SAMPLE_TABLE.EMAIL IS 'Email address';`
 	)
 }
 
-export default CodeView 
+export default CodeView

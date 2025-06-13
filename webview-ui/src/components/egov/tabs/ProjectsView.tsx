@@ -20,8 +20,8 @@ const ProjectsView = () => {
 					marginBottom: "16px",
 					marginTop: "5px",
 				}}>
-				Generate new eGovFrame projects from predefined templates. Choose from various project templates
-				including basic Spring applications, web applications, and more. Learn more at{" "}
+				Generate new eGovFrame projects from predefined templates. Choose from various project templates including basic
+				Spring applications, web applications, and more. Learn more at{" "}
 				<VSCodeLink href="https://github.com/chris-yoon/egovframe-pack" style={{ display: "inline" }}>
 					GitHub
 				</VSCodeLink>
@@ -76,4 +76,4 @@ const ProjectsView = () => {
 	)
 }
 
-export default ProjectsView 
+export default ProjectsView
