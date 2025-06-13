@@ -14,6 +14,7 @@ import {
 } from "../../../src/shared/api"
 import { findLastIndex } from "@shared/array"
 import { McpMarketplaceCatalog, McpServer, McpViewTab } from "../../../src/shared/mcp"
+import { EgovViewTab } from "../shared/egovframe"
 import { convertTextMateToHljs } from "../utils/textMateToHljs"
 import { vscode } from "../utils/vscode"
 import { DEFAULT_BROWSER_SETTINGS } from "@shared/BrowserSettings"
@@ -39,6 +40,7 @@ interface ExtensionStateContextType extends ExtensionState {
 	showHistory: boolean
 	showAccount: boolean
 	showEgov: boolean
+	egovTab?: EgovViewTab
 	showAnnouncement: boolean
 
 	// Setters
@@ -65,6 +67,7 @@ interface ExtensionStateContextType extends ExtensionState {
 	// Navigation state setters
 	setShowMcp: (value: boolean) => void
 	setMcpTab: (tab?: McpViewTab) => void
+	setEgovTab: (tab?: EgovViewTab) => void
 
 	// Navigation functions
 	navigateToMcp: (tab?: McpViewTab) => void
@@ -95,6 +98,7 @@ export const ExtensionStateContextProvider: React.FC<{
 	const [showHistory, setShowHistory] = useState(false)
 	const [showAccount, setShowAccount] = useState(false)
 	const [showEgov, setShowEgov] = useState(false)
+	const [egovTab, setEgovTab] = useState<EgovViewTab | undefined>(undefined)
 	const [showAnnouncement, setShowAnnouncement] = useState(false)
 
 	// Helper for MCP view
@@ -464,6 +468,7 @@ export const ExtensionStateContextProvider: React.FC<{
 		showHistory,
 		showAccount,
 		showEgov,
+		egovTab,
 		showAnnouncement,
 		globalClineRulesToggles: state.globalClineRulesToggles || {},
 		localClineRulesToggles: state.localClineRulesToggles || {},
@@ -579,6 +584,7 @@ export const ExtensionStateContextProvider: React.FC<{
 				globalWorkflowToggles: toggles,
 			})),
 		setMcpTab,
+		setEgovTab,
 		setTotalTasksSize,
 	}
 

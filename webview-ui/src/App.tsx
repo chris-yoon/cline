@@ -22,6 +22,7 @@ const AppContent = () => {
 		showHistory,
 		showAccount,
 		showEgov,
+		egovTab,
 		showAnnouncement,
 		setShowAnnouncement,
 		setShouldShowAnnouncement,
@@ -63,7 +64,7 @@ const AppContent = () => {
 					{showHistory && <HistoryView onDone={hideHistory} />}
 					{showMcp && <McpView initialTab={mcpTab} onDone={closeMcpView} />}
 					{showAccount && <AccountView onDone={hideAccount} />}
-					{showEgov && <EgovView onDone={hideEgov} />}
+					{showEgov && <EgovView initialTab={egovTab} onDone={hideEgov} />}
 					{/* Do not conditionally load ChatView, it's expensive and there's state we don't want to lose (user input, disableInput, askResponse promise, etc.) */}
 					<ChatView
 						showHistoryView={navigateToHistory}
