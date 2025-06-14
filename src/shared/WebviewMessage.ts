@@ -34,6 +34,7 @@ export interface WebviewMessage {
 		| "generateProject"
 		| "generateProjectByCommand"
 		| "switchEgovTab"
+		| "getWorkspacePath"
 
 	text?: string
 	disabled?: boolean

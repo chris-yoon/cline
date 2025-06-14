@@ -44,6 +44,7 @@ export interface ExtensionMessage {
 		| "selectedOutputPath"
 		| "projectGenerationResult"
 		| "projectGenerationProgress"
+		| "currentWorkspacePath"
 	text?: string
 	action?:
 		| "chatButtonClicked"

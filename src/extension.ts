@@ -215,12 +215,23 @@ export async function activate(context: vscode.ExtensionContext) {
 	)
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand("cline.egovButtonClicked", (webview: any) => {
-			const openEgov = (instance?: WebviewProvider) =>
-				instance?.controller.postMessageToWebview({
+		vscode.commands.registerCommand("cline.egovButtonClicked", async (webview: any) => {
+			const openEgov = async (instance?: WebviewProvider) => {
+				await instance?.controller.postMessageToWebview({
 					type: "action",
 					action: "egovButtonClicked",
 				})
+
+				// Send current workspace path as default output path
+				const workspaceFolders = vscode.workspace.workspaceFolders
+				if (workspaceFolders && workspaceFolders.length > 0) {
+					const workspacePath = workspaceFolders[0].uri.fsPath
+					await instance?.controller.postMessageToWebview({
+						type: "currentWorkspacePath",
+						text: workspacePath,
+					})
+				}
+			}
 
 			// Handle eGovFrame project generation messages
 			const handleSelectOutputPath = async () => {
@@ -243,9 +254,11 @@ export async function activate(context: vscode.ExtensionContext) {
 
 			const isSidebar = !webview
 			if (isSidebar) {
-				openEgov(WebviewProvider.getSidebarInstance())
+				await openEgov(WebviewProvider.getSidebarInstance())
 			} else {
-				WebviewProvider.getTabInstances().forEach(openEgov)
+				for (const instance of WebviewProvider.getTabInstances()) {
+					await openEgov(instance)
+				}
 			}
 		}),
 	)

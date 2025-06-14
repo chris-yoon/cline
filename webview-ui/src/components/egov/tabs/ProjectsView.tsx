@@ -44,11 +44,20 @@ export const ProjectsView = () => {
 		// Initialize with sample project name
 		setProjectName(generateSampleProjectName())
 
+		// Request current workspace path when component mounts
+		vscode.postMessage({ type: "getWorkspacePath" })
+
 		// Listen for messages from extension
 		const handleMessage = (event: MessageEvent) => {
 			const message = event.data
 			switch (message.type) {
 				case "selectedOutputPath":
+					if (message.text) {
+						setOutputPath(message.text)
+					}
+					break
+				case "currentWorkspacePath":
+					// Set workspace path as default output path
 					if (message.text) {
 						setOutputPath(message.text)
 					}

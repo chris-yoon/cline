@@ -41,6 +41,12 @@ export function createGenerateProjectByCommandMessage() {
 	}
 }
 
+export function createGetWorkspacePathMessage() {
+	return {
+		type: "getWorkspacePath" as const,
+	}
+}
+
 // Helper function to get workspace-relative path
 export function getWorkspaceRelativePath(fullPath: string, workspacePath?: string): string {
 	if (!workspacePath) {

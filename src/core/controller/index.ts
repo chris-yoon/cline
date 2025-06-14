@@ -537,6 +537,17 @@ export class Controller {
 				break
 			}
 
+			case "getWorkspacePath": {
+				const workspaceFolders = vscode.workspace.workspaceFolders
+				if (workspaceFolders && workspaceFolders.length > 0) {
+					await this.postMessageToWebview({
+						type: "currentWorkspacePath",
+						text: workspaceFolders[0].uri.fsPath,
+					})
+				}
+				break
+			}
+
 			// Add more switch case statements here as more webview message commands
 			// are created within the webview context (i.e. inside media/main.js)
 		}
