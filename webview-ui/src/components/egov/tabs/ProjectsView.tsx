@@ -241,13 +241,39 @@ export const ProjectsView = () => {
 				/* Command-based Generation */
 				<div>
 					<div style={{ marginBottom: "20px" }}>
-						<p style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)", marginBottom: "10px" }}>
-							Use VS Code command palette to generate projects with step-by-step guidance.
+						<h4 style={{ color: "var(--vscode-foreground)", marginBottom: "10px", marginTop: 0 }}>
+							Interactive Project Generation
+						</h4>
+						<p style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)", marginBottom: "15px" }}>
+							Follow step-by-step prompts to generate your eGovFrame project. This mode provides guided assistance
+							and validation at each step.
 						</p>
-						<VSCodeButton appearance="primary" onClick={handleGenerateByCommand}>
-							<span className="codicon codicon-terminal" style={{ marginRight: "6px" }}></span>
-							Open Command Palette
-						</VSCodeButton>
+
+						<div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+							<VSCodeButton appearance="primary" onClick={handleGenerateByCommand}>
+								<span className="codicon codicon-debug-step-over" style={{ marginRight: "6px" }}></span>
+								Start Interactive Generation
+							</VSCodeButton>
+						</div>
+
+						<div
+							style={{
+								backgroundColor: "var(--vscode-textBlockQuote-background)",
+								border: "1px solid var(--vscode-textBlockQuote-border)",
+								borderRadius: "3px",
+								padding: "12px",
+								marginTop: "15px",
+								fontSize: "12px",
+							}}>
+							<div style={{ fontWeight: "bold", marginBottom: "8px" }}>Interactive Generation Features:</div>
+							<ul style={{ margin: 0, paddingLeft: "20px" }}>
+								<li>Step-by-step category and template selection</li>
+								<li>Real-time validation and suggestions</li>
+								<li>Workspace integration and path recommendations</li>
+								<li>Preview generated project structure</li>
+								<li>Rollback capability if generation fails</li>
+							</ul>
+						</div>
 					</div>
 				</div>
 			) : (

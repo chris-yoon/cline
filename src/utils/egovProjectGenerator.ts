@@ -219,7 +219,198 @@ function getDefaultTemplates(): EgovProjectTemplate[] {
 }
 
 /**
- * Open generated project in VS Code
+ * Start interactive project generation workflow using VS Code UI
+ */
+export async function startInteractiveProjectGeneration(
+	extensionPath: string,
+	progressCallback?: (message: string) => void,
+): Promise<void> {
+	try {
+		progressCallback?.("🚀 Starting interactive project generation...")
+
+		// Step 1: Select category
+		const categories = ["All", "Web", "Template", "Mobile", "Boot", "MSA", "Batch"]
+		const selectedCategory = await vscode.window.showQuickPick(categories, {
+			placeHolder: "Select project category",
+			ignoreFocusOut: true,
+		})
+
+		if (!selectedCategory) {
+			progressCallback?.("❌ Generation cancelled - no category selected")
+			return
+		}
+
+		progressCallback?.(`📁 Category selected: ${selectedCategory}`)
+
+		// Step 2: Get templates for category
+		const allTemplates = await getAvailableTemplates(extensionPath)
+		const filteredTemplates =
+			selectedCategory === "All"
+				? allTemplates
+				: allTemplates.filter((t) => t.displayName.toLowerCase().includes(selectedCategory.toLowerCase()))
+
+		if (filteredTemplates.length === 0) {
+			vscode.window.showWarningMessage(`No templates found for category: ${selectedCategory}`)
+			return
+		}
+
+		// Step 3: Select template
+		const templateItems = filteredTemplates.map((template) => ({
+			label: template.displayName,
+			description: template.fileName,
+			detail: `POM: ${template.pomFile || "Not required"}`,
+			template,
+		}))
+
+		const selectedTemplateItem = await vscode.window.showQuickPick(templateItems, {
+			placeHolder: `Select template from ${filteredTemplates.length} available`,
+			matchOnDescription: true,
+			matchOnDetail: true,
+			ignoreFocusOut: true,
+		})
+
+		if (!selectedTemplateItem) {
+			progressCallback?.("❌ Generation cancelled - no template selected")
+			return
+		}
+
+		progressCallback?.(`📦 Template selected: ${selectedTemplateItem.template.displayName}`)
+
+		// Step 4: Enter project name
+		const projectName = await vscode.window.showInputBox({
+			prompt: "Enter project name",
+			placeHolder: "my-egov-project",
+			validateInput: (value) => {
+				if (!value || value.trim() === "") {
+					return "Project name is required"
+				}
+				if (!/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(value)) {
+					return "Project name must start with a letter and contain only letters, numbers, hyphens, and underscores"
+				}
+				return null
+			},
+			ignoreFocusOut: true,
+		})
+
+		if (!projectName) {
+			progressCallback?.("❌ Generation cancelled - no project name entered")
+			return
+		}
+
+		progressCallback?.(`✏️ Project name: ${projectName}`)
+
+		// Step 5: Enter Group ID (if needed)
+		let groupID = ""
+		if (selectedTemplateItem.template.pomFile) {
+			groupID =
+				(await vscode.window.showInputBox({
+					prompt: "Enter Maven Group ID",
+					placeHolder: "egovframework.example.sample",
+					value: "egovframework.example.sample",
+					validateInput: (value) => {
+						if (!value || value.trim() === "") {
+							return "Group ID is required for this template"
+						}
+						if (!/^[a-zA-Z][a-zA-Z0-9._-]*$/.test(value)) {
+							return "Group ID must be a valid Java package name"
+						}
+						return null
+					},
+					ignoreFocusOut: true,
+				})) || ""
+
+			if (!groupID) {
+				progressCallback?.("❌ Generation cancelled - no group ID entered")
+				return
+			}
+
+			progressCallback?.(`🏷️ Group ID: ${groupID}`)
+		}
+
+		// Step 6: Select output path
+		const outputPathOptions: vscode.OpenDialogOptions = {
+			canSelectMany: false,
+			canSelectFiles: false,
+			canSelectFolders: true,
+			openLabel: "Select Output Directory",
+			title: "Select where to create the project",
+		}
+
+		const outputPathResult = await vscode.window.showOpenDialog(outputPathOptions)
+		if (!outputPathResult || outputPathResult.length === 0) {
+			progressCallback?.("❌ Generation cancelled - no output path selected")
+			return
+		}
+
+		const outputPath = outputPathResult[0].fsPath
+		progressCallback?.(`📂 Output path: ${outputPath}`)
+
+		// Step 7: Confirm generation
+		const confirmMessage = `Generate eGovFrame project with the following settings?
+
+Project Name: ${projectName}
+Template: ${selectedTemplateItem.template.displayName}
+${groupID ? `Group ID: ${groupID}` : ""}
+Output Path: ${outputPath}
+
+The project will be created at: ${path.join(outputPath, projectName)}`
+
+		const confirmed = await vscode.window.showInformationMessage(
+			confirmMessage,
+			{ modal: true },
+			"Generate Project",
+			"Cancel",
+		)
+
+		if (confirmed !== "Generate Project") {
+			progressCallback?.("❌ Generation cancelled by user")
+			return
+		}
+
+		// Step 8: Generate project
+		const config: EgovProjectConfig = {
+			projectName,
+			groupID,
+			outputPath,
+			template: selectedTemplateItem.template,
+		}
+
+		const result = await generateEgovProject(config, extensionPath, progressCallback)
+
+		if (result.success) {
+			progressCallback?.("✅ Interactive generation completed successfully!")
+
+			// Offer to open project
+			const openProject = await vscode.window.showInformationMessage(
+				`✅ eGovFrame project "${projectName}" created successfully!`,
+				"Open Project",
+				"Open in New Window",
+				"Show in Explorer",
+			)
+
+			if (openProject === "Open Project") {
+				await openProjectInVSCode(result.projectPath!)
+			} else if (openProject === "Open in New Window") {
+				const projectUri = vscode.Uri.file(result.projectPath!)
+				await vscode.commands.executeCommand("vscode.openFolder", projectUri, {
+					forceNewWindow: true,
+				})
+			} else if (openProject === "Show in Explorer") {
+				await vscode.commands.executeCommand("revealFileInOS", vscode.Uri.file(result.projectPath!))
+			}
+		} else {
+			progressCallback?.(`❌ Interactive generation failed: ${result.error}`)
+			vscode.window.showErrorMessage(`Failed to generate project: ${result.error}`)
+		}
+	} catch (error) {
+		const errorMessage = error instanceof Error ? error.message : String(error)
+		progressCallback?.(`❌ Interactive generation error: ${errorMessage}`)
+		vscode.window.showErrorMessage(`Interactive generation failed: ${errorMessage}`)
+	}
+}
+
+/**
+ * Open project in VS Code
  */
 export async function openProjectInVSCode(projectPath: string): Promise<void> {
 	const projectUri = vscode.Uri.file(projectPath)

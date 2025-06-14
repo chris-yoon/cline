@@ -529,11 +529,18 @@ export class Controller {
 			}
 
 			case "generateProjectByCommand": {
-				// Show command palette for eGovFrame project generation
-				vscode.window.showInformationMessage(
-					"Command-based project generation will be implemented in future version.",
-					"OK",
-				)
+				// Start interactive project generation workflow
+				try {
+					const { startInteractiveProjectGeneration } = await import("../../utils/egovProjectGenerator")
+					await startInteractiveProjectGeneration(this.context.extensionPath, (progressMessage: string) => {
+						this.postMessageToWebview({
+							type: "projectGenerationProgress",
+							text: progressMessage,
+						})
+					})
+				} catch (error) {
+					vscode.window.showErrorMessage(`Failed to start interactive generation: ${error}`)
+				}
 				break
 			}
 
