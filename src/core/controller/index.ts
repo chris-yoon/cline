@@ -555,6 +555,63 @@ export class Controller {
 				break
 			}
 
+			case "generateCode": {
+				if (message.ddl) {
+					try {
+						const { generateCrudFromDDL } = await import("../../utils/crudGenerator")
+						await generateCrudFromDDL(message.ddl, this.context)
+						await this.postMessageToWebview({
+							type: "success",
+							text: "CRUD code generation completed successfully",
+						})
+					} catch (error) {
+						await this.postMessageToWebview({
+							type: "error",
+							text: error instanceof Error ? error.message : "Code generation failed",
+						})
+					}
+				}
+				break
+			}
+
+			case "uploadTemplates": {
+				if (message.ddl) {
+					try {
+						const { uploadTemplates } = await import("../../utils/crudGenerator")
+						await uploadTemplates(message.ddl)
+						await this.postMessageToWebview({
+							type: "success",
+							text: "Custom template code generation completed successfully",
+						})
+					} catch (error) {
+						await this.postMessageToWebview({
+							type: "error",
+							text: error instanceof Error ? error.message : "Template generation failed",
+						})
+					}
+				}
+				break
+			}
+
+			case "downloadTemplateContext": {
+				if (message.ddl && message.context) {
+					try {
+						const { downloadTemplateContext } = await import("../../utils/crudGenerator")
+						await downloadTemplateContext(message.ddl, message.context)
+						await this.postMessageToWebview({
+							type: "success",
+							text: "Template context downloaded successfully",
+						})
+					} catch (error) {
+						await this.postMessageToWebview({
+							type: "error",
+							text: error instanceof Error ? error.message : "Template context download failed",
+						})
+					}
+				}
+				break
+			}
+
 			// Add more switch case statements here as more webview message commands
 			// are created within the webview context (i.e. inside media/main.js)
 		}

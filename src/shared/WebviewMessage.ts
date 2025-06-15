@@ -35,6 +35,9 @@ export interface WebviewMessage {
 		| "generateProjectByCommand"
 		| "switchEgovTab"
 		| "getWorkspacePath"
+		| "generateCode"
+		| "uploadTemplates"
+		| "downloadTemplateContext"
 
 	text?: string
 	disabled?: boolean
@@ -95,6 +98,10 @@ export interface WebviewMessage {
 		}
 	}
 	method?: string
+
+	// For DDL code generation
+	ddl?: string
+	context?: any
 
 	offset?: number
 	shellIntegrationTimeout?: number
