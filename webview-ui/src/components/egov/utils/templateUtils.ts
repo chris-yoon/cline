@@ -98,33 +98,24 @@ export function loadTemplates(): TemplateConfig[] {
 	return templatesData
 }
 
-export function groupTemplates(templates: TemplateConfig[]): GroupedTemplates[] {
-	const groups: { [key: string]: TemplateConfig[] } = {}
-	const groupedTemplates: GroupedTemplates[] = []
+export function groupTemplates(templates: TemplateConfig[]): GroupedTemplates {
+	const grouped: GroupedTemplates = {}
 
 	templates.forEach((template) => {
 		const parts = template.displayName.split(" > ")
-		if (parts.length > 1) {
-			const groupName = parts[0]
-			if (!groups[groupName]) {
-				groups[groupName] = []
+		if (parts.length >= 2) {
+			const category = parts[0]
+			const subcategory = parts[1]
+
+			if (!grouped[category]) {
+				grouped[category] = {}
 			}
-			groups[groupName].push({
-				...template,
-				displayName: parts.slice(1).join(" > "), // Remove group name from display
-			})
+
+			grouped[category][subcategory] = template
 		}
 	})
 
-	// Convert groups object to array
-	Object.keys(groups).forEach((groupName) => {
-		groupedTemplates.push({
-			groupName,
-			templates: groups[groupName],
-		})
-	})
-
-	return groupedTemplates
+	return grouped
 }
 
 export function getTemplatesByCategory(category: string): TemplateConfig[] {

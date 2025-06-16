@@ -1,257 +1,223 @@
-import { VSCodeButton, VSCodeDropdown, VSCodeOption, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
-import { useState, useEffect } from "react"
-import { TemplateConfig, ConfigFormData } from "../types/templates"
-import { loadTemplates, groupTemplates } from "../utils/templateUtils"
-import DatasourceForm from "../forms/DatasourceForm"
-import LoggingForm from "../forms/LoggingForm"
+import React, { useState, useEffect } from "react"
+import { VSCodeButton, VSCodeDropdown, VSCodeOption, VSCodeDivider, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
+import { TemplateConfig, GroupedTemplates, ConfigFormData } from "../types/templates"
+import { loadTemplates } from "../utils/templateUtils"
+import FormFactory from "../forms/FormFactory"
 import { vscode } from "../../../utils/vscode"
 
-const ConfigView = () => {
+const ConfigView: React.FC = () => {
 	const [templates, setTemplates] = useState<TemplateConfig[]>([])
-	const [groupedTemplates, setGroupedTemplates] = useState<any[]>([])
+	const [groupedTemplates, setGroupedTemplates] = useState<GroupedTemplates>({})
+	const [selectedCategory, setSelectedCategory] = useState<string>("")
+	const [selectedSubcategory, setSelectedSubcategory] = useState<string>("")
 	const [selectedTemplate, setSelectedTemplate] = useState<TemplateConfig | null>(null)
-	const [selectedGroup, setSelectedGroup] = useState<string>("")
-	const [showForm, setShowForm] = useState(false)
-	const [isLoading, setIsLoading] = useState(false)
+	const [currentView, setCurrentView] = useState<"list" | "form">("list")
+	const [loading, setLoading] = useState(true)
+	const [error, setError] = useState<string | null>(null)
 
 	useEffect(() => {
-		try {
-			const loadedTemplates = loadTemplates()
-			setTemplates(loadedTemplates)
-			const grouped = groupTemplates(loadedTemplates)
-			setGroupedTemplates(grouped)
-		} catch (error) {
-			console.error("Failed to load templates:", error)
-			vscode.postMessage({
-				type: "showError",
-				value: "Failed to load configuration templates. Please check if templates are properly installed.",
-			})
+		const initializeTemplates = async () => {
+			try {
+				setLoading(true)
+				const loadedTemplates = await loadTemplates()
+				console.log("Loaded templates:", loadedTemplates)
+				setTemplates(loadedTemplates)
+
+				// Group templates by category and subcategory
+				const grouped: GroupedTemplates = {}
+				loadedTemplates.forEach((template) => {
+					const [category, subcategory] = template.displayName.split(" > ")
+					if (!grouped[category]) {
+						grouped[category] = {}
+					}
+					grouped[category][subcategory] = template
+				})
+
+				console.log("Grouped templates:", grouped)
+				setGroupedTemplates(grouped)
+				setError(null)
+			} catch (err) {
+				console.error("Failed to load templates:", err)
+				setError("Failed to load templates. Please try again.")
+			} finally {
+				setLoading(false)
+			}
 		}
+
+		initializeTemplates()
 	}, [])
 
-	const getTemplatesByGroup = (groupName: string) => {
-		const group = groupedTemplates.find((g) => g.groupName === groupName)
-		return group ? group.templates : []
-	}
-
-	const handleSelectTemplate = () => {
-		console.log("handleSelectTemplate called, selectedGroup:", selectedGroup)
-
-		if (!selectedGroup) {
-			console.log("No group selected, showing warning")
-			vscode.postMessage({
-				type: "showWarning",
-				value: "Please select a configuration type first.",
-			})
-			return
-		}
-
-		const templates = getTemplatesByGroup(selectedGroup)
-		console.log("Templates for group", selectedGroup, ":", templates)
-
-		if (templates.length === 0) {
-			console.log("No templates found for group:", selectedGroup)
-			vscode.postMessage({
-				type: "showError",
-				value: `No templates found for category: ${selectedGroup}`,
-			})
-			return
-		}
-
-		console.log("Setting selected template:", templates[0])
-		setSelectedTemplate(templates[0])
-		setShowForm(true)
-	}
-
-	const handleFormSubmit = async (formData: ConfigFormData) => {
-		console.log("handleFormSubmit called with:", formData)
-		console.log("selectedTemplate:", selectedTemplate)
-
-		if (!selectedTemplate) {
-			console.log("No template selected")
-			return
-		}
-
-		setIsLoading(true)
-		try {
-			console.log("Sending generateConfig message to backend")
-			// Send message to extension to generate config file
-			vscode.postMessage({
-				type: "generateConfig",
-				value: {
-					template: selectedTemplate,
-					formData: formData,
-					outputFolder: formData.outputFolder,
-				},
-			})
-
-			console.log("Message sent, closing form")
-			setShowForm(false)
-			setSelectedTemplate(null)
-		} catch (error) {
-			console.error("Failed to generate config:", error)
-			vscode.postMessage({
-				type: "showError",
-				value: "Failed to generate configuration file. Please try again.",
-			})
-		} finally {
-			setIsLoading(false)
-		}
-	}
-
-	const handleFormCancel = () => {
-		setShowForm(false)
+	const handleCategoryChange = (category: string) => {
+		console.log("Category selected:", category)
+		setSelectedCategory(category)
+		setSelectedSubcategory("")
 		setSelectedTemplate(null)
 	}
 
-	const handleUploadTemplates = () => {
-		vscode.postMessage({
-			type: "uploadTemplates",
-		})
+	const handleSubcategoryChange = (subcategory: string) => {
+		console.log("Subcategory selected:", subcategory)
+		setSelectedSubcategory(subcategory)
+
+		if (selectedCategory && subcategory && groupedTemplates[selectedCategory]) {
+			const template = groupedTemplates[selectedCategory][subcategory]
+			if (template) {
+				setSelectedTemplate(template)
+				console.log("Template selected:", template)
+			}
+		}
 	}
 
-	const handleDownloadTemplateContext = () => {
-		vscode.postMessage({
-			type: "downloadTemplateContext",
-		})
+	const handleConfigureClick = () => {
+		if (selectedTemplate) {
+			console.log("Opening form for template:", selectedTemplate)
+			setCurrentView("form")
+		}
 	}
 
-	const handleOpenPackageSettings = () => {
-		vscode.postMessage({
-			type: "openPackageSettings",
-		})
-	}
+	const handleFormSubmit = (formData: ConfigFormData) => {
+		console.log("Form submitted with data:", formData)
+		console.log("Selected template:", selectedTemplate)
 
-	const renderConfigForm = () => {
-		if (!selectedTemplate) return null
-
-		// Determine which form to render based on template
-		if (selectedTemplate.displayName.toLowerCase().includes("datasource")) {
-			return <DatasourceForm onSubmit={handleFormSubmit} onCancel={handleFormCancel} />
-		} else if (selectedTemplate.displayName.toLowerCase().includes("logging")) {
-			const loggingType = selectedTemplate.displayName.toLowerCase().includes("console")
-				? "console"
-				: selectedTemplate.displayName.toLowerCase().includes("file")
-					? "file"
-					: "console"
-			return (
-				<LoggingForm
-					onSubmit={handleFormSubmit}
-					onCancel={handleFormCancel}
-					loggingType={loggingType as "console" | "file" | "rollingFile"}
-				/>
-			)
+		if (!selectedTemplate) {
+			console.error("No template selected")
+			return
 		}
 
-		// Default form for other templates (to be implemented)
+		// Post message to generate config
+		try {
+			vscode.postMessage({
+				type: "generateConfig",
+				template: selectedTemplate,
+				formData: formData,
+			})
+		} catch (error) {
+			console.error("Error sending message:", error)
+		}
+
+		// Return to list view
+		setCurrentView("list")
+	}
+
+	const handleFormCancel = () => {
+		console.log("Form cancelled")
+		setCurrentView("list")
+	}
+
+	if (loading) {
 		return (
-			<div style={{ padding: "20px" }}>
-				<h3>Configuration Form</h3>
-				<p>Form for {selectedTemplate.displayName} is not yet implemented.</p>
-				<VSCodeButton onClick={handleFormCancel}>Close</VSCodeButton>
+			<div style={{ padding: "20px", textAlign: "center" }}>
+				<p style={{ color: "var(--vscode-foreground)" }}>Loading templates...</p>
 			</div>
 		)
 	}
 
-	if (showForm) {
-		return renderConfigForm()
+	if (error) {
+		return (
+			<div style={{ padding: "20px", textAlign: "center" }}>
+				<p style={{ color: "var(--vscode-errorForeground)" }}>{error}</p>
+				<VSCodeButton onClick={() => window.location.reload()}>Retry</VSCodeButton>
+			</div>
+		)
 	}
 
+	if (currentView === "form" && selectedTemplate) {
+		return <FormFactory template={selectedTemplate} onSubmit={handleFormSubmit} onCancel={handleFormCancel} />
+	}
+
+	const categories = Object.keys(groupedTemplates)
+	const subcategories = selectedCategory ? Object.keys(groupedTemplates[selectedCategory] || {}) : []
+
 	return (
-		<div style={{ padding: "16px 20px" }}>
-			<div
-				style={{
-					color: "var(--vscode-foreground)",
-					fontSize: "13px",
-					marginBottom: "16px",
-					marginTop: "5px",
-				}}>
-				Generate configuration files for eGovFrame applications. Create Spring configuration, database settings, security
-				configurations, and more. Based on templates from{" "}
-				<VSCodeLink href="https://github.com/chris-yoon/egovframe-pack" style={{ display: "inline" }}>
-					egovframe-pack
-				</VSCodeLink>
-				.
-			</div>
-
-			{/* Toolbar */}
-			<div style={{ display: "flex", gap: "8px", marginBottom: "16px", flexWrap: "wrap" }}>
-				<VSCodeButton appearance="secondary" onClick={handleUploadTemplates}>
-					<span className="codicon codicon-cloud-upload" style={{ marginRight: "6px" }}></span>
-					Upload Templates
-				</VSCodeButton>
-				<VSCodeButton appearance="secondary" onClick={handleDownloadTemplateContext}>
-					<span className="codicon codicon-cloud-download" style={{ marginRight: "6px" }}></span>
-					Download Template Context
-				</VSCodeButton>
-				<VSCodeButton appearance="secondary" onClick={handleOpenPackageSettings}>
-					<span className="codicon codicon-gear" style={{ marginRight: "6px" }}></span>
-					Package Settings
-				</VSCodeButton>
-			</div>
-
-			{/* Configuration Type Selection */}
+		<div style={{ padding: "20px", maxWidth: "800px" }}>
+			{/* Header */}
 			<div style={{ marginBottom: "20px" }}>
-				<h4 style={{ color: "var(--vscode-foreground)", marginBottom: "10px", marginTop: 0 }}>Configuration Type</h4>
-				<VSCodeDropdown
-					style={{ width: "100%", marginBottom: "10px" }}
-					value={selectedGroup}
-					onInput={(e: any) => setSelectedGroup(e.target.value)}>
-					<VSCodeOption value="">Select configuration type...</VSCodeOption>
-					{groupedTemplates.map((group) => (
-						<VSCodeOption key={group.groupName} value={group.groupName}>
-							{group.groupName}
-						</VSCodeOption>
-					))}
-				</VSCodeDropdown>
+				<h3 style={{ color: "var(--vscode-foreground)", marginTop: 0, marginBottom: "8px" }}>
+					Generate eGovFrame Configurations
+				</h3>
+				<p
+					style={{
+						fontSize: "12px",
+						color: "var(--vscode-descriptionForeground)",
+						margin: 0,
+						marginTop: "5px",
+					}}>
+					Generate configuration files for eGovFrame projects. Learn more at{" "}
+					<VSCodeLink href="https://github.com/chris-yoon/egovframe-pack" style={{ display: "inline" }}>
+						GitHub
+					</VSCodeLink>
+				</p>
+			</div>
 
-				{selectedGroup && (
-					<div style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)", marginTop: "5px" }}>
-						Available templates:{" "}
-						{getTemplatesByGroup(selectedGroup)
-							.map((t: TemplateConfig) => t.displayName)
-							.join(", ")}
+			<div style={{ marginBottom: "20px" }}>
+				<div style={{ marginBottom: "15px" }}>
+					<label style={{ display: "block", marginBottom: "5px", color: "var(--vscode-foreground)" }}>
+						Select Category
+					</label>
+					<VSCodeDropdown
+						value={selectedCategory}
+						onInput={(e: any) => handleCategoryChange(e.target.value)}
+						style={{ width: "100%" }}>
+						<VSCodeOption value="">-- Select Category --</VSCodeOption>
+						{categories.map((category) => (
+							<VSCodeOption key={category} value={category}>
+								{category}
+							</VSCodeOption>
+						))}
+					</VSCodeDropdown>
+				</div>
+
+				{selectedCategory && (
+					<div style={{ marginBottom: "15px" }}>
+						<label style={{ display: "block", marginBottom: "5px", color: "var(--vscode-foreground)" }}>
+							Select Configuration Type
+						</label>
+						<VSCodeDropdown
+							value={selectedSubcategory}
+							onInput={(e: any) => handleSubcategoryChange(e.target.value)}
+							style={{ width: "100%" }}>
+							<VSCodeOption value="">-- Select Configuration Type --</VSCodeOption>
+							{subcategories.map((subcategory) => (
+								<VSCodeOption key={subcategory} value={subcategory}>
+									{subcategory}
+								</VSCodeOption>
+							))}
+						</VSCodeDropdown>
+					</div>
+				)}
+
+				{selectedTemplate && (
+					<div style={{ marginTop: "20px" }}>
+						<VSCodeDivider />
+						<div
+							style={{
+								marginTop: "20px",
+								padding: "15px",
+								border: "1px solid var(--vscode-panel-border)",
+								borderRadius: "4px",
+							}}>
+							<h3 style={{ color: "var(--vscode-foreground)", marginBottom: "10px" }}>Selected Configuration</h3>
+							<p style={{ color: "var(--vscode-foreground)", marginBottom: "15px" }}>
+								<strong>Name:</strong> {selectedTemplate.displayName}
+							</p>
+							<p style={{ color: "var(--vscode-foreground)", marginBottom: "15px" }}>
+								<strong>Template:</strong> {selectedTemplate.templateFile}
+							</p>
+							<p style={{ color: "var(--vscode-foreground)", marginBottom: "15px" }}>
+								<strong>Folder:</strong> {selectedTemplate.templateFolder}
+							</p>
+							<VSCodeButton onClick={handleConfigureClick} appearance="primary">
+								Configure
+							</VSCodeButton>
+						</div>
 					</div>
 				)}
 			</div>
 
-			{/* Generate Button */}
-			<div style={{ marginBottom: "20px" }}>
-				<VSCodeButton
-					appearance="primary"
-					style={{ width: "100%", marginBottom: "10px" }}
-					onClick={handleSelectTemplate}
-					disabled={!selectedGroup || isLoading}>
-					<span className="codicon codicon-file-code" style={{ marginRight: "6px" }}></span>
-					{isLoading ? "Generating..." : "Generate Configuration Files"}
-				</VSCodeButton>
-				<p style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)", margin: "5px 0" }}>
-					Generate configuration files based on selected type and project structure
-				</p>
-			</div>
-
-			{/* Available Templates Info */}
-			<div
-				style={{
-					backgroundColor: "var(--vscode-editor-inactiveSelectionBackground)",
-					padding: "15px",
-					borderRadius: "4px",
-					marginTop: "20px",
-				}}>
-				<h4 style={{ color: "var(--vscode-foreground)", marginBottom: "10px", marginTop: 0 }}>
-					Available Configuration Types ({templates.length} templates)
-				</h4>
-				<div style={{ fontSize: "12px", color: "var(--vscode-foreground)" }}>
-					{groupedTemplates.map((group, index) => (
-						<div key={group.groupName} style={{ marginBottom: "8px" }}>
-							<strong>{group.groupName}:</strong> {group.templates.length} template(s)
-							<div style={{ marginLeft: "10px", fontStyle: "italic" }}>
-								{group.templates.map((t: TemplateConfig) => t.displayName).join(", ")}
-							</div>
-						</div>
-					))}
+			{templates.length === 0 && !loading && (
+				<div style={{ textAlign: "center", padding: "40px" }}>
+					<p style={{ color: "var(--vscode-foreground)" }}>No templates available</p>
 				</div>
-			</div>
+			)}
 		</div>
 	)
 }

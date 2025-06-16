@@ -224,12 +224,22 @@ const CodeView = () => {
 						marginBottom: "16px",
 						marginTop: "5px",
 					}}>
-					Generate CRUD operations and database-related code from DDL (Data Definition Language) statements. Supports
-					Oracle, MySQL, PostgreSQL and more. Uses Handlebars template engine. Learn more at{" "}
-					<VSCodeLink href="https://github.com/chris-yoon/egovframe-pack" style={{ display: "inline" }}>
-						GitHub
-					</VSCodeLink>
-					.
+					<h3 style={{ color: "var(--vscode-foreground)", marginTop: 0, marginBottom: "8px" }}>
+						Generate eGovFrame Code from DDL
+					</h3>
+					<p
+						style={{
+							fontSize: "12px",
+							color: "var(--vscode-descriptionForeground)",
+							margin: 0,
+							marginTop: "5px",
+						}}>
+						Generate CRUD operations and database-related code from DDL (Data Definition Language) statements.
+						Supports Oracle, MySQL, PostgreSQL and more. Uses Handlebars template engine. Learn more at{" "}
+						<VSCodeLink href="https://github.com/chris-yoon/egovframe-pack" style={{ display: "inline" }}>
+							GitHub
+						</VSCodeLink>
+					</p>
 				</div>
 
 				{/* Toolbar */}
