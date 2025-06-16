@@ -1,0 +1,145 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Development Guidelines and Best Practices
+
+## Code Style and Conventions
+
+### TypeScript Standards
+- Use strict TypeScript configuration
+- Define interfaces for all message types and data structures
+- Prefer `const` over `let` where possible
+- Use descriptive variable and function names
+- Add JSDoc comments for complex functions
+
+### File Organization
+- Keep related functionality in dedicated utility files
+- Separate webview and extension logic clearly
+- Use consistent naming patterns (camelCase for variables, PascalCase for types)
+- Group imports logically (external libraries, internal modules, types)
+
+## Error Handling Patterns
+
+### Extension Side
+```typescript
+try {
+  // Operation logic
+  await generateCrudFromDDL(ddl, context, packageName, outputPath)
+  webviewView.webview.postMessage({ type: "success", message: "Generated successfully" })
+} catch (error) {
+  console.error("Generation error:", error)
+  webviewView.webview.postMessage({ 
+    type: "error", 
+    message: error instanceof Error ? error.message : "Unknown error" 
+  })
+}
+```
+
+### Webview Side
+```typescript
+const [isLoading, setIsLoading] = useState(false)
+const [error, setError] = useState("")
+
+const handleOperation = async () => {
+  setIsLoading(true)
+  setError("")
+  try {
+    vscode.postMessage({ type: "operation", data })
+  } catch (err) {
+    setError(err instanceof Error ? err.message : "Operation failed")
+    setIsLoading(false)
+  }
+}
+```
+
+## DDL Processing Guidelines
+
+### Validation Rules
+- Always validate DDL syntax before processing
+- Check for required elements (table name, at least one column)
+- Provide clear error messages for invalid DDL
+- Support common SQL variations and edge cases
+
+### Data Type Mapping
+- Maintain consistent SQL-to-Java type mappings in [webview-ui/src/utils/ddlParser.ts](mdc:webview-ui/src/utils/ddlParser.ts)
+- Handle nullable vs non-nullable types appropriately
+- Support precision/scale for decimal types
+- Default to String for unknown types with warning
+
+## Template Development
+
+### Handlebars Best Practices
+- Use semantic helper names (eq, concat, lowercase)
+- Provide fallback values for optional template variables
+- Test templates with various DDL inputs
+- Document custom helpers and their usage
+
+### Template Context Structure
+```typescript
+interface TemplateContext {
+  tableName: string
+  packageName: string
+  packagePath: string
+  attributes: ColumnAttribute[]
+  pkAttributes: ColumnAttribute[]
+}
+```
+
+## UI/UX Guidelines
+
+### Real-time Feedback
+- Show validation status immediately (✓Valid/✗Invalid)
+- Display parsed table preview when DDL is valid
+- Provide loading states for async operations
+- Clear error messages with actionable guidance
+
+### Form Validation
+- Validate required fields before submission
+- Show field-level validation errors
+- Disable submit buttons when form is invalid
+- Provide helpful placeholder text and descriptions
+
+## Testing Considerations
+
+### DDL Test Cases
+- Simple table with basic columns
+- Table with primary keys and constraints
+- Table with various data types
+- Invalid DDL syntax cases
+- Edge cases (empty table, special characters)
+
+### Template Testing
+- Test with single-column tables
+- Test with multi-column tables
+- Test with different data types
+- Test with and without primary keys
+- Verify generated code compiles
+
+## Performance Guidelines
+
+### File Operations
+- Use async file operations to avoid blocking
+- Batch file writes when generating multiple files
+- Provide progress feedback for long operations
+- Handle file system errors gracefully
+
+### Memory Management
+- Clean up event listeners in React components
+- Avoid memory leaks in long-running operations
+- Use appropriate data structures for large DDL parsing
+
+## Security Considerations
+
+### Input Validation
+- Sanitize DDL input to prevent injection
+- Validate file paths for output operations
+- Restrict template file access to safe directories
+- Validate package names against Java naming conventions
+
+### File System Access
+- Use VSCode APIs for file operations when possible
+- Validate output paths are within workspace
+- Handle permission errors appropriately
+- Don't expose sensitive system paths

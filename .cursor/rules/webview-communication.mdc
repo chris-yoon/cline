@@ -1,0 +1,120 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Webview-Extension Communication Patterns
+
+## Message Flow Architecture
+Communication between the webview UI and VSCode extension follows a structured message passing pattern.
+
+## Message Type Definitions
+- **Extension Side**: [src/shared/WebviewMessage.ts](mdc:src/shared/WebviewMessage.ts)
+- **Webview Side**: [webview-ui/src/utils/messageTypes.ts](mdc:webview-ui/src/utils/messageTypes.ts)
+
+## Core Message Types
+
+### From Webview to Extension
+1. **generateCode**: Triggers CRUD code generation
+   - Payload: `{ ddl: string, packageName: string, outputPath: string }`
+   - Handler: Controller processes DDL and generates files
+
+2. **uploadTemplates**: Custom template upload workflow
+   - Payload: `{ ddl: string }`
+   - Handler: Opens file dialog for template selection
+
+3. **downloadTemplateContext**: Export template context as JSON
+   - Payload: `{ ddl: string, context: object }`
+   - Handler: Saves context JSON to selected folder
+
+4. **getWorkspacePath**: Request current workspace path
+   - Payload: None
+   - Handler: Returns current workspace root path
+
+5. **selectOutputPath**: Open folder selection dialog
+   - Payload: None
+   - Handler: Opens folder picker and returns selected path
+
+### From Extension to Webview
+1. **error**: Error notification
+   - Payload: `{ message: string }`
+   - Handler: Display error in UI
+
+2. **success**: Success notification
+   - Payload: `{ message: string }`
+   - Handler: Clear errors and show success
+
+3. **sampleDDL**: Insert sample DDL
+   - Payload: `{ ddl: string }`
+   - Handler: Populate DDL textarea
+
+4. **selectedOutputPath**: Return selected folder path
+   - Payload: `{ text: string }`
+   - Handler: Update output path field
+
+5. **currentWorkspacePath**: Return workspace path
+   - Payload: `{ text: string }`
+   - Handler: Set default output path
+
+## Communication Implementation
+
+### Webview Side ([webview-ui/src/components/egov/tabs/CodeView.tsx](mdc:webview-ui/src/components/egov/tabs/CodeView.tsx))
+```typescript
+// Sending messages to extension
+vscode.postMessage({
+  type: "generateCode",
+  ddl: ddlContent,
+  packageName: packageName.trim(),
+  outputPath: outputPath.trim(),
+})
+
+// Receiving messages from extension
+const handleMessage = (event: MessageEvent) => {
+  const message = event.data
+  switch (message.type) {
+    case "error":
+      setError(message.message)
+      break
+    case "success":
+      setError("")
+      break
+  }
+}
+```
+
+### Extension Side ([src/core/controller/index.ts](mdc:src/core/controller/index.ts))
+```typescript
+// Handling webview messages
+case "generateCode":
+  await generateCrudFromDDL(
+    message.ddl,
+    context,
+    message.packageName,
+    message.outputPath
+  )
+  break
+
+// Sending messages to webview
+webviewView.webview.postMessage({
+  type: "success",
+  message: "Code generated successfully"
+})
+```
+
+## Error Handling Patterns
+- All async operations wrapped in try-catch
+- Errors sent back to webview with descriptive messages
+- Loading states managed during async operations
+- Validation performed before processing
+
+## State Management
+- Webview maintains local state for DDL content, validation, and UI state
+- Extension handles file system operations and template processing
+- Bidirectional communication for user interactions (folder selection, etc.)
+
+## Best Practices
+- Always validate message structure before processing
+- Use TypeScript interfaces for message type safety
+- Handle both success and error cases
+- Provide user feedback for all operations
+- Clean up event listeners on component unmount

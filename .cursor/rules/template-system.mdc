@@ -1,0 +1,72 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Handlebars Template System and Code Generation
+
+## Template Engine Configuration
+The system uses Handlebars.js for template-based code generation with custom helpers registered in [src/utils/crudGenerator.ts](mdc:src/utils/crudGenerator.ts).
+
+## Custom Handlebars Helpers
+- `eq(a, b)`: Equality comparison
+- `concat(...args)`: String concatenation
+- `lowercase(str)`: Convert to lowercase
+- `unless(condition)`: Inverse conditional
+- `setVar(name, value)`: Set template variable
+- `error(message)`: Error handling with HTML output
+- `empty(value)`: Check if value is null or empty
+
+## Template File Mapping
+The [src/utils/crudGenerator.ts](mdc:src/utils/crudGenerator.ts) defines 12 template files:
+
+### Java Files
+1. **VO Template**: `sample-vo-template.hbs` → `{TableName}VO.java`
+2. **Default VO**: `sample-default-vo-template.hbs` → `DefaultVO.java`
+3. **Service Interface**: `sample-service-template.hbs` → `{TableName}Service.java`
+4. **Service Implementation**: `sample-service-impl-template.hbs` → `{TableName}ServiceImpl.java`
+5. **Controller**: `sample-controller-template.hbs` → `{TableName}Controller.java`
+6. **DAO**: `sample-dao-template.hbs` → `{TableName}DAO.java`
+7. **Mapper Interface**: `sample-mapper-interface-template.hbs` → `{TableName}Mapper.java`
+
+### Configuration Files
+8. **MyBatis XML**: `sample-mapper-template.hbs` → `{TableName}_SQL.xml`
+
+### View Templates
+9. **JSP List**: `sample-jsp-list.hbs` → `{TableName}List.jsp`
+10. **JSP Register**: `sample-jsp-register.hbs` → `{TableName}Regist.jsp`
+11. **Thymeleaf List**: `sample-thymeleaf-list.hbs` → `{TableName}List.html`
+12. **Thymeleaf Register**: `sample-thymeleaf-register.hbs` → `{TableName}Regist.html`
+
+## Directory Structure Convention
+Generated files follow Maven/Spring Boot structure:
+```
+src/main/java/{packagePath}/
+├── web/ - Controllers
+├── service/ - Services & VOs
+└── service/impl/ - Service Implementations & DAOs
+src/main/resources/
+├── egovframework/mapper/ - MyBatis XML
+└── templates/ - Thymeleaf HTML
+src/main/webapp/WEB-INF/jsp/ - JSP Views
+```
+
+## Template Context Object
+Templates receive context with:
+- `tableName`: Table name (e.g., "users")
+- `packageName`: Java package (e.g., "com.example.project")
+- `packagePath`: Package as path (e.g., "com/example/project")
+- `attributes`: Column array with `columnName`, `javaType`, `ccName`, `isPrimaryKey`
+- `pkAttributes`: Primary key columns only
+
+## Template Usage Patterns
+- Use `{{tableName}}` for table references
+- Use `{{#each attributes}}` to iterate columns
+- Use `{{#if isPrimaryKey}}` for PK-specific logic
+- Use `{{packageName}}` for package declarations
+- Use custom helpers for string manipulation and conditionals
+
+## Error Handling
+- Template compilation errors are caught and reported
+- Missing template files throw descriptive errors
+- Invalid context data is validated before rendering

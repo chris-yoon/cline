@@ -1,0 +1,44 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# eGovFrame DDL-based CRUD Code Generation Architecture
+
+## Project Overview
+This VSCode extension integrates egovframe-pack's DDL-based CRUD code generation functionality using Handlebars template engine. The system parses DDL statements and generates comprehensive Java enterprise application code.
+
+## Core Architecture
+
+### Extension Side (Backend)
+- **Controller**: [src/core/controller/index.ts](mdc:src/core/controller/index.ts) - Main extension controller handling webview messages
+- **DDL Parser**: [src/utils/ddlParser.ts](mdc:src/utils/ddlParser.ts) - Server-side DDL parsing and validation
+- **CRUD Generator**: [src/utils/crudGenerator.ts](mdc:src/utils/crudGenerator.ts) - Main code generation orchestrator with template mapping
+- **Code Generator Utils**: [src/utils/codeGeneratorUtils.ts](mdc:src/utils/codeGeneratorUtils.ts) - Template rendering and file generation utilities
+- **Message Types**: [src/shared/WebviewMessage.ts](mdc:src/shared/WebviewMessage.ts) - Extension-webview communication contracts
+
+### Webview Side (Frontend)
+- **CodeView Component**: [webview-ui/src/components/egov/tabs/CodeView.tsx](mdc:webview-ui/src/components/egov/tabs/CodeView.tsx) - Main UI component with real-time DDL validation
+- **DDL Parser**: [webview-ui/src/utils/ddlParser.ts](mdc:webview-ui/src/utils/ddlParser.ts) - Client-side DDL parsing and validation
+- **Template Context**: [webview-ui/src/utils/templateContext.ts](mdc:webview-ui/src/utils/templateContext.ts) - Template context generation
+- **Message Types**: [webview-ui/src/utils/messageTypes.ts](mdc:webview-ui/src/utils/messageTypes.ts) - Webview message type definitions
+
+## Key Features
+1. **Real-time DDL Validation**: Live parsing with ✓Valid/✗Invalid indicators
+2. **Table Preview**: Shows parsed columns, data types, and primary keys
+3. **Multi-file Generation**: 12 different file types (Java, XML, JSP, HTML)
+4. **Template System**: Handlebars-based with custom helpers
+5. **Directory Structure**: Follows Spring/eGovFrame conventions
+
+## Generated File Types
+- **Java**: VO, Service, ServiceImpl, Controller, DAO, Mapper interface
+- **Configuration**: MyBatis XML mapping files
+- **Views**: JSP and Thymeleaf templates
+- **Structure**: Maven-style directory layout
+
+## Message Flow
+1. User inputs DDL in CodeView.tsx
+2. Real-time validation via webview DDL parser
+3. Generate button sends message to extension controller
+4. Extension processes DDL and generates files using templates
+5. Success/error feedback sent back to webview

@@ -1,0 +1,62 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# DDL Parsing Rules and Data Type Mappings
+
+## DDL Parser Implementation
+The DDL parsing is implemented in both extension and webview sides:
+- **Extension**: [src/utils/ddlParser.ts](mdc:src/utils/ddlParser.ts)
+- **Webview**: [webview-ui/src/utils/ddlParser.ts](mdc:webview-ui/src/utils/ddlParser.ts)
+
+## Supported DDL Syntax
+- `CREATE TABLE` statements
+- Column definitions with data types
+- Primary key constraints (`PRIMARY KEY`, `AUTO_INCREMENT`)
+- NOT NULL constraints
+- DEFAULT values
+- UNIQUE constraints
+
+## Data Type Mappings
+The system maps SQL data types to Java types:
+
+### String Types
+- `VARCHAR(n)` → `String`
+- `CHAR(n)` → `String`
+- `TEXT` → `String`
+
+### Numeric Types
+- `INT`, `INTEGER` → `Integer`
+- `BIGINT` → `Long`
+- `DECIMAL(p,s)`, `NUMERIC(p,s)` → `BigDecimal`
+- `FLOAT` → `Float`
+- `DOUBLE` → `Double`
+
+### Date/Time Types
+- `DATE` → `Date`
+- `DATETIME` → `Date`
+- `TIMESTAMP` → `Date`
+
+### Boolean Types
+- `BOOLEAN`, `BOOL` → `Boolean`
+
+## Parsing Logic
+1. **Table Name Extraction**: Regex pattern to extract table name from CREATE TABLE
+2. **Column Parsing**: Line-by-line analysis of column definitions
+3. **Primary Key Detection**: Identifies PK columns and AUTO_INCREMENT
+4. **Data Type Conversion**: Maps SQL types to Java types
+5. **Naming Convention**: Converts snake_case to camelCase for Java properties
+
+## Validation Rules
+- Must start with `CREATE TABLE`
+- Table name must be valid identifier
+- At least one column required
+- Column names must be valid identifiers
+- Data types must be supported
+
+## Usage in Templates
+Parsed DDL creates context object with:
+- `tableName`: Original table name
+- `attributes`: Array of column objects with `columnName`, `dataType`, `javaType`, `ccName`, `isPrimaryKey`
+- `pkAttributes`: Array of primary key columns
