@@ -81,6 +81,7 @@ const ConfigView = () => {
 				value: {
 					template: selectedTemplate,
 					formData: formData,
+					outputFolder: formData.outputFolder,
 				},
 			})
 
@@ -208,7 +209,7 @@ const ConfigView = () => {
 					<div style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)", marginTop: "5px" }}>
 						Available templates:{" "}
 						{getTemplatesByGroup(selectedGroup)
-							.map((t) => t.displayName)
+							.map((t: TemplateConfig) => t.displayName)
 							.join(", ")}
 					</div>
 				)}

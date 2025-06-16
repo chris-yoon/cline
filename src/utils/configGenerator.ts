@@ -189,15 +189,17 @@ export async function generateConfigFile(
 	template: TemplateConfig,
 	formData: ConfigFormData,
 	context: vscode.ExtensionContext,
+	outputFolderPath?: string,
 ): Promise<void> {
 	try {
 		console.log("generateConfigFile called with:")
 		console.log("- template:", template)
 		console.log("- formData:", formData)
 		console.log("- context.extensionPath:", context.extensionPath)
-
-		const outputFolderPath = await getOutputPath()
 		console.log("- outputFolderPath:", outputFolderPath)
+
+		const finalOutputPath = outputFolderPath || (await getOutputPath())
+		console.log("- finalOutputPath:", finalOutputPath)
 
 		// Determine which template and extension to use based on generation type
 		let templateFile: string
@@ -244,7 +246,7 @@ export async function generateConfigFile(
 			context,
 			template.templateFolder,
 			templateFile,
-			outputFolderPath,
+			finalOutputPath,
 			template.fileNameProperty,
 			fileExtension,
 		)

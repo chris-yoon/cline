@@ -25,4 +25,5 @@ export interface ConfigFormData {
 	[key: string]: any
 	txtFileName: string
 	generationType: ConfigGenerationType
+	outputFolder?: string
 }

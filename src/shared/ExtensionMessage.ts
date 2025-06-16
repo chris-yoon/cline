@@ -42,6 +42,7 @@ export interface ExtensionMessage {
 		| "fileSearchResults"
 		| "grpc_response" // New type for gRPC responses
 		| "selectedOutputPath"
+		| "selectedOutputFolder"
 		| "projectGenerationResult"
 		| "projectGenerationProgress"
 		| "currentWorkspacePath"

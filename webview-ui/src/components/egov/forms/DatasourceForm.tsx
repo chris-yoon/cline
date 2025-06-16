@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
 	VSCodeButton,
 	VSCodeDropdown,
@@ -8,6 +8,7 @@ import {
 	VSCodeRadioGroup,
 } from "@vscode/webview-ui-toolkit/react"
 import { ConfigGenerationType, ConfigFormData } from "../types/templates"
+import { vscode } from "../../../utils/vscode"
 
 interface DatasourceFormProps {
 	onSubmit: (data: ConfigFormData) => void
@@ -25,6 +26,39 @@ const DatasourceForm: React.FC<DatasourceFormProps> = ({ onSubmit, onCancel }) =
 		txtUser: "",
 		txtPasswd: "",
 	})
+	const [selectedOutputFolder, setSelectedOutputFolder] = useState<string | null>(null)
+	const [pendingFormData, setPendingFormData] = useState<ConfigFormData | null>(null)
+
+	// Message listener for folder selection response
+	useEffect(() => {
+		console.log("DatasourceForm: Setting up message listener")
+
+		const handleMessage = (event: any) => {
+			console.log("DatasourceForm: Received message:", event.data)
+			const message = event.data
+			if (message.type === "selectedOutputFolder") {
+				console.log("DatasourceForm: Received selectedOutputFolder:", message.text)
+				setSelectedOutputFolder(message.text)
+				// If we have pending form data, submit it now
+				if (pendingFormData) {
+					console.log("DatasourceForm: Submitting with pending data:", pendingFormData)
+					onSubmit({
+						...pendingFormData,
+						outputFolder: message.text,
+					})
+					setPendingFormData(null)
+				} else {
+					console.log("DatasourceForm: No pending form data")
+				}
+			}
+		}
+
+		window.addEventListener("message", handleMessage)
+		return () => {
+			console.log("DatasourceForm: Cleaning up message listener")
+			window.removeEventListener("message", handleMessage)
+		}
+	}, [pendingFormData, onSubmit])
 
 	const handleGenerationTypeChange = (type: ConfigGenerationType) => {
 		setFormData((prev) => ({
@@ -36,7 +70,46 @@ const DatasourceForm: React.FC<DatasourceFormProps> = ({ onSubmit, onCancel }) =
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault()
-		onSubmit(formData)
+		console.log("DatasourceForm handleSubmit called")
+		console.log("Form data:", formData)
+
+		// Validate required fields
+		const requiredFields = [
+			{ field: "txtFileName" as keyof typeof formData, label: "File Name" },
+			{ field: "txtDatasourceName" as keyof typeof formData, label: "DataSource Name" },
+			{ field: "rdoType" as keyof typeof formData, label: "Driver Type" },
+			{ field: "txtDriver" as keyof typeof formData, label: "Driver" },
+			{ field: "txtUrl" as keyof typeof formData, label: "URL" },
+			{ field: "txtUser" as keyof typeof formData, label: "User" },
+		]
+
+		const missingFields = requiredFields.filter(({ field }) => !formData[field]?.trim())
+
+		if (missingFields.length > 0) {
+			const fieldNames = missingFields.map(({ label }) => label).join(", ")
+			alert(`Please fill in the following required fields: ${fieldNames}`)
+			return
+		}
+
+		// Check if vscode API is available
+		if (!vscode) {
+			console.error("VSCode API is not available")
+			return
+		}
+
+		// Store form data and request folder selection
+		setPendingFormData(formData)
+		console.log("Pending form data set:", formData)
+		console.log("Requesting folder selection...")
+
+		try {
+			vscode.postMessage({
+				type: "selectOutputFolder",
+			})
+			console.log("Message sent successfully")
+		} catch (error) {
+			console.error("Error sending message:", error)
+		}
 	}
 
 	const handleInputChange = (field: string, value: string) => {
@@ -65,8 +138,9 @@ const DatasourceForm: React.FC<DatasourceFormProps> = ({ onSubmit, onCancel }) =
 						value={formData.txtFileName}
 						placeholder="Enter file name"
 						onInput={(e: any) => handleInputChange("txtFileName", e.target.value)}
-						style={{ width: "100%" }}>
-						File Name
+						style={{ width: "100%" }}
+						required>
+						File Name <span style={{ color: "var(--vscode-errorForeground)" }}>*</span>
 					</VSCodeTextField>
 				</div>
 
@@ -78,14 +152,15 @@ const DatasourceForm: React.FC<DatasourceFormProps> = ({ onSubmit, onCancel }) =
 							value={formData.txtDatasourceName}
 							placeholder="Enter datasource name"
 							onInput={(e: any) => handleInputChange("txtDatasourceName", e.target.value)}
-							style={{ width: "100%" }}>
-							DataSource Name
+							style={{ width: "100%" }}
+							required>
+							DataSource Name <span style={{ color: "var(--vscode-errorForeground)" }}>*</span>
 						</VSCodeTextField>
 					</div>
 
 					<div style={{ marginBottom: "15px" }}>
 						<label style={{ display: "block", marginBottom: "5px", color: "var(--vscode-foreground)" }}>
-							Driver Type
+							Driver Type <span style={{ color: "var(--vscode-errorForeground)" }}>*</span>
 						</label>
 						<VSCodeDropdown
 							value={formData.rdoType}
@@ -102,8 +177,9 @@ const DatasourceForm: React.FC<DatasourceFormProps> = ({ onSubmit, onCancel }) =
 							value={formData.txtDriver}
 							placeholder="Enter driver class name"
 							onInput={(e: any) => handleInputChange("txtDriver", e.target.value)}
-							style={{ width: "100%" }}>
-							Driver
+							style={{ width: "100%" }}
+							required>
+							Driver <span style={{ color: "var(--vscode-errorForeground)" }}>*</span>
 						</VSCodeTextField>
 					</div>
 
@@ -112,8 +188,9 @@ const DatasourceForm: React.FC<DatasourceFormProps> = ({ onSubmit, onCancel }) =
 							value={formData.txtUrl}
 							placeholder="Enter database URL"
 							onInput={(e: any) => handleInputChange("txtUrl", e.target.value)}
-							style={{ width: "100%" }}>
-							URL
+							style={{ width: "100%" }}
+							required>
+							URL <span style={{ color: "var(--vscode-errorForeground)" }}>*</span>
 						</VSCodeTextField>
 					</div>
 
@@ -122,8 +199,9 @@ const DatasourceForm: React.FC<DatasourceFormProps> = ({ onSubmit, onCancel }) =
 							value={formData.txtUser}
 							placeholder="Enter username"
 							onInput={(e: any) => handleInputChange("txtUser", e.target.value)}
-							style={{ width: "100%" }}>
-							User
+							style={{ width: "100%" }}
+							required>
+							User <span style={{ color: "var(--vscode-errorForeground)" }}>*</span>
 						</VSCodeTextField>
 					</div>
 

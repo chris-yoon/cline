@@ -38,6 +38,7 @@ export interface WebviewMessage {
 		| "generateCode"
 		| "uploadTemplates"
 		| "downloadTemplateContext"
+		| "selectOutputFolder"
 		| "generateConfig"
 		| "showError"
 		| "showWarning"

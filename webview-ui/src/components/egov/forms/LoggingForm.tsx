@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
 	VSCodeButton,
 	VSCodeDropdown,
@@ -8,6 +8,7 @@ import {
 	VSCodeRadioGroup,
 } from "@vscode/webview-ui-toolkit/react"
 import { ConfigGenerationType, ConfigFormData } from "../types/templates"
+import { vscode } from "../../../utils/vscode"
 
 interface LoggingFormProps {
 	onSubmit: (data: ConfigFormData) => void
@@ -38,6 +39,39 @@ const LoggingForm: React.FC<LoggingFormProps> = ({ onSubmit, onCancel, loggingTy
 		txtLoggerName: "egovframework",
 		txtLoggerLevel: "DEBUG",
 	})
+	const [selectedOutputFolder, setSelectedOutputFolder] = useState<string | null>(null)
+	const [pendingFormData, setPendingFormData] = useState<ConfigFormData | null>(null)
+
+	// Message listener for folder selection response
+	useEffect(() => {
+		console.log("LoggingForm: Setting up message listener")
+
+		const handleMessage = (event: any) => {
+			console.log("LoggingForm: Received message:", event.data)
+			const message = event.data
+			if (message.type === "selectedOutputFolder") {
+				console.log("LoggingForm: Received selectedOutputFolder:", message.text)
+				setSelectedOutputFolder(message.text)
+				// If we have pending form data, submit it now
+				if (pendingFormData) {
+					console.log("LoggingForm: Submitting with pending data:", pendingFormData)
+					onSubmit({
+						...pendingFormData,
+						outputFolder: message.text,
+					})
+					setPendingFormData(null)
+				} else {
+					console.log("LoggingForm: No pending form data")
+				}
+			}
+		}
+
+		window.addEventListener("message", handleMessage)
+		return () => {
+			console.log("LoggingForm: Cleaning up message listener")
+			window.removeEventListener("message", handleMessage)
+		}
+	}, [pendingFormData, onSubmit])
 
 	const handleGenerationTypeChange = (type: ConfigGenerationType) => {
 		setFormData((prev) => ({
@@ -49,7 +83,43 @@ const LoggingForm: React.FC<LoggingFormProps> = ({ onSubmit, onCancel, loggingTy
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault()
-		onSubmit(formData)
+		console.log("LoggingForm handleSubmit called")
+		console.log("Form data:", formData)
+
+		// Validate required fields
+		const requiredFields = [
+			{ field: "txtFileName" as keyof typeof formData, label: "File Name" },
+			{ field: "txtAppenderName" as keyof typeof formData, label: "Appender Name" },
+			{ field: "txtPattern" as keyof typeof formData, label: "Log Pattern" },
+		]
+
+		const missingFields = requiredFields.filter(({ field }) => !formData[field]?.trim())
+
+		if (missingFields.length > 0) {
+			const fieldNames = missingFields.map(({ label }) => label).join(", ")
+			alert(`Please fill in the following required fields: ${fieldNames}`)
+			return
+		}
+
+		// Check if vscode API is available
+		if (!vscode) {
+			console.error("VSCode API is not available")
+			return
+		}
+
+		// Store form data and request folder selection
+		setPendingFormData(formData)
+		console.log("Pending form data set:", formData)
+		console.log("Requesting folder selection...")
+
+		try {
+			vscode.postMessage({
+				type: "selectOutputFolder",
+			})
+			console.log("Message sent successfully")
+		} catch (error) {
+			console.error("Error sending message:", error)
+		}
 	}
 
 	const handleInputChange = (field: string, value: string) => {
@@ -92,8 +162,9 @@ const LoggingForm: React.FC<LoggingFormProps> = ({ onSubmit, onCancel, loggingTy
 						value={formData.txtFileName}
 						placeholder="Enter file name"
 						onInput={(e: any) => handleInputChange("txtFileName", e.target.value)}
-						style={{ width: "100%" }}>
-						File Name
+						style={{ width: "100%" }}
+						required>
+						File Name <span style={{ color: "var(--vscode-errorForeground)" }}>*</span>
 					</VSCodeTextField>
 				</div>
 
@@ -105,8 +176,9 @@ const LoggingForm: React.FC<LoggingFormProps> = ({ onSubmit, onCancel, loggingTy
 							value={formData.txtAppenderName}
 							placeholder="Enter appender name"
 							onInput={(e: any) => handleInputChange("txtAppenderName", e.target.value)}
-							style={{ width: "100%" }}>
-							Appender Name
+							style={{ width: "100%" }}
+							required>
+							Appender Name <span style={{ color: "var(--vscode-errorForeground)" }}>*</span>
 						</VSCodeTextField>
 					</div>
 
@@ -131,8 +203,9 @@ const LoggingForm: React.FC<LoggingFormProps> = ({ onSubmit, onCancel, loggingTy
 							value={formData.txtPattern}
 							placeholder="Enter log pattern"
 							onInput={(e: any) => handleInputChange("txtPattern", e.target.value)}
-							style={{ width: "100%" }}>
-							Log Pattern
+							style={{ width: "100%" }}
+							required>
+							Log Pattern <span style={{ color: "var(--vscode-errorForeground)" }}>*</span>
 						</VSCodeTextField>
 					</div>
 

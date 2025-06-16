@@ -210,6 +210,7 @@ export class Controller {
 	 * @param webview A reference to the extension webview
 	 */
 	async handleWebviewMessage(message: WebviewMessage) {
+		console.log("Controller: Received webview message:", message.type, message)
 		switch (message.type) {
 			case "authStateChanged":
 				await this.setUserInfo(message.user || undefined)
@@ -636,16 +637,18 @@ export class Controller {
 
 				const template = message.value?.template || message.template
 				const formData = message.value?.formData || message.formData
+				const outputFolder = message.value?.outputFolder
 
 				console.log("Template:", template)
 				console.log("FormData:", formData)
+				console.log("OutputFolder:", outputFolder)
 
 				if (template && formData) {
 					try {
 						console.log("Importing configGenerator...")
 						const { generateConfigFile } = await import("../../utils/configGenerator")
 						console.log("Starting config file generation...")
-						await generateConfigFile(template, formData, this.context)
+						await generateConfigFile(template, formData, this.context, outputFolder)
 						console.log("Config file generated successfully")
 						await this.postMessageToWebview({
 							type: "success",
@@ -684,6 +687,35 @@ export class Controller {
 
 			case "openPackageSettings": {
 				vscode.commands.executeCommand("workbench.action.openSettings", "egovframe")
+				break
+			}
+
+			case "selectOutputFolder": {
+				console.log("Controller: Received selectOutputFolder message")
+				try {
+					console.log("Controller: Opening folder selection dialog...")
+					const folders = await vscode.window.showOpenDialog({
+						canSelectFolders: true,
+						canSelectFiles: false,
+						canSelectMany: false,
+						openLabel: "Select Output Directory",
+						title: "Select Directory for Configuration Files",
+					})
+
+					console.log("Controller: Selected folders:", folders)
+					if (folders && folders.length > 0) {
+						console.log("Controller: Sending selectedOutputFolder response:", folders[0].fsPath)
+						const result = await this.postMessageToWebview({
+							type: "selectedOutputFolder",
+							text: folders[0].fsPath,
+						})
+						console.log("Controller: Message sent result:", result)
+					} else {
+						console.log("Controller: No folder selected by user")
+					}
+				} catch (error) {
+					console.error("Controller: Error in selectOutputFolder:", error)
+				}
 				break
 			}
 
