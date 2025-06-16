@@ -630,6 +630,63 @@ export class Controller {
 				break
 			}
 
+			case "generateConfig": {
+				console.log("Received generateConfig message:", message)
+				console.log("Message value:", message.value)
+
+				const template = message.value?.template || message.template
+				const formData = message.value?.formData || message.formData
+
+				console.log("Template:", template)
+				console.log("FormData:", formData)
+
+				if (template && formData) {
+					try {
+						console.log("Importing configGenerator...")
+						const { generateConfigFile } = await import("../../utils/configGenerator")
+						console.log("Starting config file generation...")
+						await generateConfigFile(template, formData, this.context)
+						console.log("Config file generated successfully")
+						await this.postMessageToWebview({
+							type: "success",
+							text: "Configuration file generated successfully",
+						})
+					} catch (error) {
+						console.error("Config generation error:", error)
+						await this.postMessageToWebview({
+							type: "error",
+							text: error instanceof Error ? error.message : "Configuration file generation failed",
+						})
+					}
+				} else {
+					console.log("Missing template or form data:", { template, formData, messageValue: message.value })
+					await this.postMessageToWebview({
+						type: "error",
+						text: "Missing template or form data for config generation",
+					})
+				}
+				break
+			}
+
+			case "showError": {
+				if (message.value) {
+					vscode.window.showErrorMessage(message.value)
+				}
+				break
+			}
+
+			case "showWarning": {
+				if (message.value) {
+					vscode.window.showWarningMessage(message.value)
+				}
+				break
+			}
+
+			case "openPackageSettings": {
+				vscode.commands.executeCommand("workbench.action.openSettings", "egovframe")
+				break
+			}
+
 			// Add more switch case statements here as more webview message commands
 			// are created within the webview context (i.e. inside media/main.js)
 		}

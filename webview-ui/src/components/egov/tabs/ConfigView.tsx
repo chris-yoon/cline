@@ -1,27 +1,159 @@
 import { VSCodeButton, VSCodeDropdown, VSCodeOption, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { TemplateConfig, ConfigFormData } from "../types/templates"
+import { loadTemplates, groupTemplates } from "../utils/templateUtils"
+import DatasourceForm from "../forms/DatasourceForm"
+import LoggingForm from "../forms/LoggingForm"
+import { vscode } from "../../../utils/vscode"
 
 const ConfigView = () => {
-	const [selectedConfigType, setSelectedConfigType] = useState("spring")
+	const [templates, setTemplates] = useState<TemplateConfig[]>([])
+	const [groupedTemplates, setGroupedTemplates] = useState<any[]>([])
+	const [selectedTemplate, setSelectedTemplate] = useState<TemplateConfig | null>(null)
+	const [selectedGroup, setSelectedGroup] = useState<string>("")
+	const [showForm, setShowForm] = useState(false)
+	const [isLoading, setIsLoading] = useState(false)
 
-	const handleGenerateConfig = () => {
-		console.log("Generate configuration:", selectedConfigType)
-		// 향후 설정 파일 생성 로직을 여기에 구현
+	useEffect(() => {
+		try {
+			const loadedTemplates = loadTemplates()
+			setTemplates(loadedTemplates)
+			const grouped = groupTemplates(loadedTemplates)
+			setGroupedTemplates(grouped)
+		} catch (error) {
+			console.error("Failed to load templates:", error)
+			vscode.postMessage({
+				type: "showError",
+				value: "Failed to load configuration templates. Please check if templates are properly installed.",
+			})
+		}
+	}, [])
+
+	const getTemplatesByGroup = (groupName: string) => {
+		const group = groupedTemplates.find((g) => g.groupName === groupName)
+		return group ? group.templates : []
+	}
+
+	const handleSelectTemplate = () => {
+		console.log("handleSelectTemplate called, selectedGroup:", selectedGroup)
+
+		if (!selectedGroup) {
+			console.log("No group selected, showing warning")
+			vscode.postMessage({
+				type: "showWarning",
+				value: "Please select a configuration type first.",
+			})
+			return
+		}
+
+		const templates = getTemplatesByGroup(selectedGroup)
+		console.log("Templates for group", selectedGroup, ":", templates)
+
+		if (templates.length === 0) {
+			console.log("No templates found for group:", selectedGroup)
+			vscode.postMessage({
+				type: "showError",
+				value: `No templates found for category: ${selectedGroup}`,
+			})
+			return
+		}
+
+		console.log("Setting selected template:", templates[0])
+		setSelectedTemplate(templates[0])
+		setShowForm(true)
+	}
+
+	const handleFormSubmit = async (formData: ConfigFormData) => {
+		console.log("handleFormSubmit called with:", formData)
+		console.log("selectedTemplate:", selectedTemplate)
+
+		if (!selectedTemplate) {
+			console.log("No template selected")
+			return
+		}
+
+		setIsLoading(true)
+		try {
+			console.log("Sending generateConfig message to backend")
+			// Send message to extension to generate config file
+			vscode.postMessage({
+				type: "generateConfig",
+				value: {
+					template: selectedTemplate,
+					formData: formData,
+				},
+			})
+
+			console.log("Message sent, closing form")
+			setShowForm(false)
+			setSelectedTemplate(null)
+		} catch (error) {
+			console.error("Failed to generate config:", error)
+			vscode.postMessage({
+				type: "showError",
+				value: "Failed to generate configuration file. Please try again.",
+			})
+		} finally {
+			setIsLoading(false)
+		}
+	}
+
+	const handleFormCancel = () => {
+		setShowForm(false)
+		setSelectedTemplate(null)
 	}
 
 	const handleUploadTemplates = () => {
-		console.log("Upload custom templates")
-		// 향후 커스텀 템플릿 업로드 로직을 여기에 구현
+		vscode.postMessage({
+			type: "uploadTemplates",
+		})
 	}
 
 	const handleDownloadTemplateContext = () => {
-		console.log("Download template context")
-		// 향후 템플릿 컨텍스트 다운로드 로직을 여기에 구현
+		vscode.postMessage({
+			type: "downloadTemplateContext",
+		})
 	}
 
 	const handleOpenPackageSettings = () => {
-		console.log("Open package settings")
-		// 향후 패키지 설정 열기 로직을 여기에 구현
+		vscode.postMessage({
+			type: "openPackageSettings",
+		})
+	}
+
+	const renderConfigForm = () => {
+		if (!selectedTemplate) return null
+
+		// Determine which form to render based on template
+		if (selectedTemplate.displayName.toLowerCase().includes("datasource")) {
+			return <DatasourceForm onSubmit={handleFormSubmit} onCancel={handleFormCancel} />
+		} else if (selectedTemplate.displayName.toLowerCase().includes("logging")) {
+			const loggingType = selectedTemplate.displayName.toLowerCase().includes("console")
+				? "console"
+				: selectedTemplate.displayName.toLowerCase().includes("file")
+					? "file"
+					: "console"
+			return (
+				<LoggingForm
+					onSubmit={handleFormSubmit}
+					onCancel={handleFormCancel}
+					loggingType={loggingType as "console" | "file" | "rollingFile"}
+				/>
+			)
+		}
+
+		// Default form for other templates (to be implemented)
+		return (
+			<div style={{ padding: "20px" }}>
+				<h3>Configuration Form</h3>
+				<p>Form for {selectedTemplate.displayName} is not yet implemented.</p>
+				<VSCodeButton onClick={handleFormCancel}>Close</VSCodeButton>
+			</div>
+		)
+	}
+
+	if (showForm) {
+		return renderConfigForm()
 	}
 
 	return (
@@ -34,9 +166,9 @@ const ConfigView = () => {
 					marginTop: "5px",
 				}}>
 				Generate configuration files for eGovFrame applications. Create Spring configuration, database settings, security
-				configurations, and more. Learn more at{" "}
+				configurations, and more. Based on templates from{" "}
 				<VSCodeLink href="https://github.com/chris-yoon/egovframe-pack" style={{ display: "inline" }}>
-					GitHub
+					egovframe-pack
 				</VSCodeLink>
 				.
 			</div>
@@ -62,29 +194,42 @@ const ConfigView = () => {
 				<h4 style={{ color: "var(--vscode-foreground)", marginBottom: "10px", marginTop: 0 }}>Configuration Type</h4>
 				<VSCodeDropdown
 					style={{ width: "100%", marginBottom: "10px" }}
-					value={selectedConfigType}
-					onInput={(e: any) => setSelectedConfigType(e.target.value)}>
-					<VSCodeOption value="spring">Spring Configuration</VSCodeOption>
-					<VSCodeOption value="database">Database Configuration</VSCodeOption>
-					<VSCodeOption value="security">Security Configuration</VSCodeOption>
-					<VSCodeOption value="web">Web Configuration</VSCodeOption>
-					<VSCodeOption value="batch">Batch Configuration</VSCodeOption>
-					<VSCodeOption value="logging">Logging Configuration</VSCodeOption>
+					value={selectedGroup}
+					onInput={(e: any) => setSelectedGroup(e.target.value)}>
+					<VSCodeOption value="">Select configuration type...</VSCodeOption>
+					{groupedTemplates.map((group) => (
+						<VSCodeOption key={group.groupName} value={group.groupName}>
+							{group.groupName}
+						</VSCodeOption>
+					))}
 				</VSCodeDropdown>
+
+				{selectedGroup && (
+					<div style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)", marginTop: "5px" }}>
+						Available templates:{" "}
+						{getTemplatesByGroup(selectedGroup)
+							.map((t) => t.displayName)
+							.join(", ")}
+					</div>
+				)}
 			</div>
 
 			{/* Generate Button */}
 			<div style={{ marginBottom: "20px" }}>
-				<VSCodeButton appearance="primary" style={{ width: "100%", marginBottom: "10px" }} onClick={handleGenerateConfig}>
+				<VSCodeButton
+					appearance="primary"
+					style={{ width: "100%", marginBottom: "10px" }}
+					onClick={handleSelectTemplate}
+					disabled={!selectedGroup || isLoading}>
 					<span className="codicon codicon-file-code" style={{ marginRight: "6px" }}></span>
-					Generate Configuration Files
+					{isLoading ? "Generating..." : "Generate Configuration Files"}
 				</VSCodeButton>
 				<p style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)", margin: "5px 0" }}>
 					Generate configuration files based on selected type and project structure
 				</p>
 			</div>
 
-			{/* Configuration Types Info */}
+			{/* Available Templates Info */}
 			<div
 				style={{
 					backgroundColor: "var(--vscode-editor-inactiveSelectionBackground)",
@@ -93,27 +238,17 @@ const ConfigView = () => {
 					marginTop: "20px",
 				}}>
 				<h4 style={{ color: "var(--vscode-foreground)", marginBottom: "10px", marginTop: 0 }}>
-					Available Configuration Types
+					Available Configuration Types ({templates.length} templates)
 				</h4>
 				<div style={{ fontSize: "12px", color: "var(--vscode-foreground)" }}>
-					<div style={{ marginBottom: "8px" }}>
-						<strong>Spring Configuration:</strong> ApplicationContext, Bean definitions, AOP settings
-					</div>
-					<div style={{ marginBottom: "8px" }}>
-						<strong>Database Configuration:</strong> DataSource, Transaction manager, JPA settings
-					</div>
-					<div style={{ marginBottom: "8px" }}>
-						<strong>Security Configuration:</strong> Authentication, Authorization, CSRF protection
-					</div>
-					<div style={{ marginBottom: "8px" }}>
-						<strong>Web Configuration:</strong> MVC settings, View resolvers, Interceptors
-					</div>
-					<div style={{ marginBottom: "8px" }}>
-						<strong>Batch Configuration:</strong> Job definitions, Step configurations, Readers/Writers
-					</div>
-					<div>
-						<strong>Logging Configuration:</strong> Logback, Log4j, SLF4J configurations
-					</div>
+					{groupedTemplates.map((group, index) => (
+						<div key={group.groupName} style={{ marginBottom: "8px" }}>
+							<strong>{group.groupName}:</strong> {group.templates.length} template(s)
+							<div style={{ marginLeft: "10px", fontStyle: "italic" }}>
+								{group.templates.map((t: TemplateConfig) => t.displayName).join(", ")}
+							</div>
+						</div>
+					))}
 				</div>
 			</div>
 		</div>

@@ -38,6 +38,10 @@ export interface WebviewMessage {
 		| "generateCode"
 		| "uploadTemplates"
 		| "downloadTemplateContext"
+		| "generateConfig"
+		| "showError"
+		| "showWarning"
+		| "openPackageSettings"
 
 	text?: string
 	disabled?: boolean
@@ -104,6 +108,11 @@ export interface WebviewMessage {
 	context?: any
 	packageName?: string
 	outputPath?: string
+
+	// For config generation
+	template?: any
+	formData?: any
+	value?: any
 
 	offset?: number
 	shellIntegrationTimeout?: number
