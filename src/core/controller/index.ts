@@ -454,19 +454,28 @@ export class Controller {
 
 			// eGovFrame project generation cases
 			case "selectOutputPath": {
-				const folders = await vscode.window.showOpenDialog({
-					canSelectFolders: true,
-					canSelectFiles: false,
-					canSelectMany: false,
-					openLabel: "Select Output Directory",
-					title: "Select Directory for eGovFrame Project",
-				})
-
-				if (folders && folders.length > 0) {
-					await this.postMessageToWebview({
-						type: "selectedOutputPath",
-						text: folders[0].fsPath,
+				console.log("Received selectOutputPath message")
+				try {
+					const folders = await vscode.window.showOpenDialog({
+						canSelectFolders: true,
+						canSelectFiles: false,
+						canSelectMany: false,
+						openLabel: "Select Output Directory",
+						title: "Select Directory for eGovFrame Project",
 					})
+
+					console.log("Selected folders:", folders)
+					if (folders && folders.length > 0) {
+						console.log("Sending selectedOutputPath response:", folders[0].fsPath)
+						await this.postMessageToWebview({
+							type: "selectedOutputPath",
+							text: folders[0].fsPath,
+						})
+					} else {
+						console.log("No folder selected")
+					}
+				} catch (error) {
+					console.error("Error in selectOutputPath:", error)
 				}
 				break
 			}
@@ -558,18 +567,27 @@ export class Controller {
 			case "generateCode": {
 				if (message.ddl) {
 					try {
+						console.log("Starting CRUD code generation with DDL:", message.ddl)
+						console.log("Package name:", message.packageName)
+						console.log("Output path:", message.outputPath)
 						const { generateCrudFromDDL } = await import("../../utils/crudGenerator")
-						await generateCrudFromDDL(message.ddl, this.context)
+						await generateCrudFromDDL(message.ddl, this.context, message.packageName, message.outputPath)
 						await this.postMessageToWebview({
 							type: "success",
 							text: "CRUD code generation completed successfully",
 						})
 					} catch (error) {
+						console.error("CRUD code generation error:", error)
 						await this.postMessageToWebview({
 							type: "error",
 							text: error instanceof Error ? error.message : "Code generation failed",
 						})
 					}
+				} else {
+					await this.postMessageToWebview({
+						type: "error",
+						text: "No DDL provided for code generation",
+					})
 				}
 				break
 			}

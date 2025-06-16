@@ -3,6 +3,8 @@ import { TemplateContext } from "./templateContext"
 export interface GenerateCodeMessage {
 	type: "generateCode"
 	ddl: string
+	packageName?: string
+	outputPath?: string
 }
 
 export interface UploadTemplatesMessage {
@@ -20,11 +22,21 @@ export interface InsertSampleDDLMessage {
 	type: "insertSampleDDL"
 }
 
+export interface GetWorkspacePathMessage {
+	type: "getWorkspacePath"
+}
+
+export interface SelectOutputPathMessage {
+	type: "selectOutputPath"
+}
+
 export type WebviewMessage =
 	| GenerateCodeMessage
 	| UploadTemplatesMessage
 	| DownloadTemplateContextMessage
 	| InsertSampleDDLMessage
+	| GetWorkspacePathMessage
+	| SelectOutputPathMessage
 
 export interface ErrorResponse {
 	type: "error"
@@ -41,4 +53,19 @@ export interface SampleDDLResponse {
 	ddl: string
 }
 
-export type ExtensionResponse = ErrorResponse | SuccessResponse | SampleDDLResponse
+export interface SelectedOutputPathResponse {
+	type: "selectedOutputPath"
+	text: string
+}
+
+export interface CurrentWorkspacePathResponse {
+	type: "currentWorkspacePath"
+	text: string
+}
+
+export type ExtensionResponse =
+	| ErrorResponse
+	| SuccessResponse
+	| SampleDDLResponse
+	| SelectedOutputPathResponse
+	| CurrentWorkspacePathResponse

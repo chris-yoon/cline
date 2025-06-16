@@ -20,7 +20,9 @@ function convertToCamelCase(str: string): string {
 
 // camelCase를 PascalCase로 변환하는 함수
 function convertCamelcaseToPascalcase(name: string): string {
-	if (!name) return name
+	if (!name) {
+		return name
+	}
 	return name.charAt(0).toUpperCase() + name.slice(1)
 }
 

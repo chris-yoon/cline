@@ -102,6 +102,8 @@ export interface WebviewMessage {
 	// For DDL code generation
 	ddl?: string
 	context?: any
+	packageName?: string
+	outputPath?: string
 
 	offset?: number
 	shellIntegrationTimeout?: number

@@ -58,7 +58,9 @@ function registerHandlebarsHelpers() {
 	})
 
 	Handlebars.registerHelper("lowercase", function (str) {
-		if (typeof str !== "string") return ""
+		if (typeof str !== "string") {
+			return ""
+		}
 		return str.toLowerCase()
 	})
 }
