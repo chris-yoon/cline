@@ -1,0 +1,39 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# eGovFrame Integration Guide
+
+## Overview
+The eGovFrame integration provides a React-based interface for Korean government framework development, converted from traditional HTML/JS to modern React architecture.
+
+## Component Structure
+
+### Main eGovFrame Components
+- **EgovView**: [webview-ui/src/components/egov/EgovView.tsx](mdc:webview-ui/src/components/egov/EgovView.tsx) - Main container with tab management
+- **ProjectsView**: [webview-ui/src/components/egov/ProjectsView.tsx](mdc:webview-ui/src/components/egov/ProjectsView.tsx) - Project generation interface
+- **CodeView**: [webview-ui/src/components/egov/CodeView.tsx](mdc:webview-ui/src/components/egov/CodeView.tsx) - DDL-based code generation
+- **ConfigView**: [webview-ui/src/components/egov/ConfigView.tsx](mdc:webview-ui/src/components/egov/ConfigView.tsx) - Configuration generation
+
+### Backend Integration
+- **Webview Provider**: Backend logic for serving React webview and handling messages
+- **Project Configuration**: Interface for project settings including outputPath property
+- **Template Management**: System for loading and managing eGovFrame project templates
+
+## Key Features
+1. **Project Generation**: Template-based project scaffolding with form validation
+2. **Code Generation**: DDL-to-code conversion functionality  
+3. **Configuration Management**: eGovFrame-specific configuration file generation
+4. **VSCode Integration**: Native VSCode file system and workspace integration
+
+## Communication Pattern
+- Extension and webview communicate via VSCode's message API
+- Messages include template loading, path selection, and project generation
+- React components use VSCode Webview UI Toolkit for native appearance
+
+## Development Notes
+- Follows exact same architectural patterns as main Cline project
+- Uses React + TypeScript + Vite stack
+- Maintains all existing functionality from HTML/JS version
+- Implements proper form validation and error handling

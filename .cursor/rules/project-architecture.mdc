@@ -1,0 +1,33 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Cline VSCode Extension - Project Architecture
+
+## Overview
+Cline is a VSCode extension with a React-based webview UI that includes eGovFrame integration for Korean government framework development.
+
+## Key Architecture Components
+
+### Extension Structure
+- **Main Extension**: [src/extension.ts](mdc:src/extension.ts) - Entry point for VSCode extension
+- **Core Logic**: [src/core/](mdc:src/core/) - Core functionality including controller, prompts, and task management
+- **Webview UI**: [webview-ui/](mdc:webview-ui/) - React-based UI components
+- **Build Output**: `out/` - Compiled extension code
+
+### Build System
+- **Extension Build**: [esbuild.js](mdc:esbuild.js) - esbuild configuration for extension bundling
+- **Webview Build**: [webview-ui/vite.config.ts](mdc:webview-ui/vite.config.ts) - Vite configuration for React UI
+- **Package Scripts**: [package.json](mdc:package.json) - Main build orchestration
+
+### eGovFrame Integration
+- **Webview Provider**: [src/integrations/egovframe/](mdc:src/integrations/egovframe/) - eGovFrame-specific logic
+- **React Components**: [webview-ui/src/components/egov/](mdc:webview-ui/src/components/egov/) - eGovFrame UI components
+- **Project Generation**: Handles Korean government framework project scaffolding
+
+## Development Workflow
+1. Extension code is built with esbuild to `out/extension.js`
+2. React webview is built with Vite to `webview-ui/dist/`
+3. Both are packaged together in the VSCode extension
+4. Communication between extension and webview uses VSCode's webview message API

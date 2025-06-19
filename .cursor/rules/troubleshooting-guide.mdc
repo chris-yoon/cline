@@ -1,0 +1,90 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Troubleshooting and Debugging Guide
+
+## Common Issues and Solutions
+
+### Build Issues
+
+#### Extension Not Loading React Webview
+**Problem**: Extension shows old HTML interface instead of new React interface
+**Solutions**:
+1. **Check Build Files**: Ensure `webview-ui/dist/` contains built React files
+2. **Verify Extension Build**: Confirm `out/extension.js` includes webview provider updates
+3. **Clear VSCode Cache**: Reload window or restart VSCode extension host
+4. **Check Webview Registration**: Verify webview provider serves React app correctly
+
+#### Build Script Failures
+**Problem**: Build scripts fail or produce incomplete output
+**Solutions**:
+1. **Clean Install**: Delete `node_modules` and `package-lock.json`, run `npm install`
+2. **Check Dependencies**: Ensure all dependencies in both root and `webview-ui/package.json`
+3. **TypeScript Errors**: Fix TypeScript compilation errors before building
+4. **Path Issues**: Verify file paths in build configurations
+
+### Development Issues
+
+#### Hot Reloading Not Working
+**Problem**: Changes don't reflect during development
+**Solutions**:
+1. **Webview Hot Reload**: Use `npm run dev:webview` for React hot reloading
+2. **Extension Watch**: Use `npm run dev:extension` for extension file watching
+3. **Parallel Development**: Use `npm run dev` for both simultaneously
+4. **Port Conflicts**: Check if Vite dev server port is available
+
+#### Message Communication Failures
+**Problem**: Webview and extension can't communicate
+**Solutions**:
+1. **Message Format**: Ensure proper message structure and types
+2. **Event Listeners**: Verify message listeners are properly registered
+3. **VSCode API**: Confirm `acquireVsCodeApi()` is called correctly
+4. **Security Policy**: Check webview security settings
+
+## Debugging Strategies
+
+### Webview Debugging
+- **Enable Dev Tools**: Set `enableCommandUris: true` in webview options
+- **Console Logging**: Use `console.log` in React components
+- **VSCode Output**: Check VSCode output panel for extension logs
+- **Network Tab**: Monitor communication between webview and extension
+
+### Extension Debugging
+- **Debug Console**: Use VSCode's debug console when running extension
+- **Breakpoints**: Set breakpoints in TypeScript extension code
+- **Log Files**: Check VSCode extension logs
+- **Error Messages**: Monitor VSCode notifications for error details
+
+## File System Verification
+
+### Required Build Outputs
+```
+out/
+  └── extension.js           # Built extension code
+
+webview-ui/
+  ├── dist/
+  │   ├── index.html        # Entry point
+  │   └── assets/
+  │       └── main.js       # Bundled React app
+  └── package.json          # React dependencies
+```
+
+### Extension Registration
+- Verify webview provider is registered in [src/extension.ts](mdc:src/extension.ts)
+- Check command registration matches `package.json` contribution points
+- Ensure webview panel creation serves from correct dist path
+
+## Migration-Specific Issues
+
+### React Component Loading
+- **Component Imports**: Verify all React components have proper imports
+- **TypeScript Interfaces**: Ensure interfaces match between webview and extension
+- **VSCode Toolkit**: Confirm `@vscode/webview-ui-toolkit` components are used correctly
+
+### State Management
+- **Initial State**: Check if React components initialize with correct state
+- **Message Handling**: Verify React components handle extension messages properly
+- **Form Validation**: Ensure form validation works with new React structure

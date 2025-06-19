@@ -1,0 +1,74 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Build System and Development Workflow
+
+## Build Architecture
+The project uses a dual build system: esbuild for the extension and Vite for the React webview.
+
+## Build Configuration Files
+
+### Extension Build
+- **esbuild Config**: [esbuild.js](mdc:esbuild.js) - Main esbuild configuration for extension bundling
+- **Output**: Produces `out/extension.js` for the VSCode extension
+- **Entry Point**: [src/extension.ts](mdc:src/extension.ts)
+
+### Webview Build  
+- **Vite Config**: [webview-ui/vite.config.ts](mdc:webview-ui/vite.config.ts) - React build configuration
+- **Output**: Produces `webview-ui/dist/` with bundled React app
+- **Entry Point**: [webview-ui/src/main.tsx](mdc:webview-ui/src/main.tsx)
+
+## Package Scripts
+
+### Main Package Scripts ([package.json](mdc:package.json))
+```json
+{
+  "scripts": {
+    "build": "npm run build:webview && npm run build:extension",
+    "build:extension": "node esbuild.js",
+    "build:webview": "cd webview-ui && npm run build",
+    "dev": "npm-run-all --parallel dev:*",
+    "dev:extension": "node esbuild.js --watch",
+    "dev:webview": "cd webview-ui && npm run dev"
+  }
+}
+```
+
+### Webview Package Scripts ([webview-ui/package.json](mdc:webview-ui/package.json))
+```json
+{
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  }
+}
+```
+
+## Development Workflow
+
+### Local Development
+1. **Install Dependencies**: Run `npm install` in root and `webview-ui/`
+2. **Development Mode**: Use `npm run dev` for parallel development with hot reloading
+3. **Extension Watch**: esbuild watches extension files and rebuilds automatically
+4. **Webview Watch**: Vite provides hot module replacement for React components
+
+### Build Process
+1. **Clean Build**: `npm run build` builds both extension and webview
+2. **Extension Build**: Bundles TypeScript to `out/extension.js`
+3. **Webview Build**: Bundles React app to `webview-ui/dist/`
+4. **VSCode Packaging**: Extension loads webview from dist folder
+
+## Key Dependencies
+- **esbuild**: Fast bundling for extension code
+- **Vite**: Modern build tool for React webview
+- **npm-run-all**: Parallel script execution
+- **TypeScript**: Type safety across the project
+
+## Development Tips
+- Use VSCode's "Run Extension" debug configuration for testing
+- Extension host reloads automatically when `out/extension.js` changes
+- Webview hot reloads when React components change
+- Build both parts before packaging for distribution

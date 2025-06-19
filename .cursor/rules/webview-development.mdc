@@ -1,0 +1,63 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Webview Development Patterns
+
+## Architecture Overview
+The webview UI is built with React and uses VSCode's webview API for seamless integration with the extension.
+
+## Key Files and Structure
+
+### React App Setup
+- **Entry Point**: [webview-ui/index.html](mdc:webview-ui/index.html) - HTML entry point for React app
+- **Main App**: [webview-ui/src/main.tsx](mdc:webview-ui/src/main.tsx) - React app initialization
+- **Root Component**: [webview-ui/src/App.tsx](mdc:webview-ui/src/App.tsx) - Main app component with VSCode API integration
+
+### Build Configuration
+- **Vite Config**: [webview-ui/vite.config.ts](mdc:webview-ui/vite.config.ts) - Webview-specific Vite configuration
+- **Package Config**: [webview-ui/package.json](mdc:webview-ui/package.json) - React dependencies and scripts
+- **TypeScript**: [webview-ui/tsconfig.json](mdc:webview-ui/tsconfig.json) - TypeScript configuration
+
+## VSCode Integration Patterns
+
+### Message Communication
+```typescript
+// Send message to extension
+vscode.postMessage({ type: 'messageType', data: payload });
+
+// Receive messages from extension  
+window.addEventListener('message', (event) => {
+  const message = event.data;
+  // Handle message
+});
+```
+
+### VSCode API Access
+- Use `@vscode/webview-ui-toolkit` for native VSCode components
+- Access VSCode API through `acquireVsCodeApi()`
+- Follow VSCode webview security guidelines
+
+## Component Development Guidelines
+
+### UI Components
+- Use VSCode Webview UI Toolkit components for consistency
+- Implement proper TypeScript interfaces for props
+- Follow React best practices with hooks and functional components
+
+### State Management
+- Use React hooks for local state
+- Implement proper error handling and loading states
+- Maintain communication with extension backend
+
+### Styling
+- Use styled-components for component-scoped styles
+- Follow VSCode theme variables for consistent appearance
+- Ensure accessibility and responsive design
+
+## Development Workflow
+1. Run `npm run dev` in webview-ui for hot reloading during development
+2. Build with `npm run build` to generate production files in `dist/`
+3. Extension automatically serves built files from `dist/` folder
+4. Use browser dev tools for debugging (when enabled in VSCode)
